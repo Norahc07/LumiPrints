@@ -1,3 +1,19 @@
+import { initializeApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
+import { doc, setDoc, getDoc, onSnapshot } from "firebase/firestore";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAB3PLDxCDQsAaui9nsaCyr1tyIed_ENBM",
+  authDomain: "lumi-prints.firebaseapp.com",
+  projectId: "lumi-prints",
+  storageBucket: "lumi-prints.appspot.com",
+  messagingSenderId: "868154756915",
+  appId: "1:868154756915:web:ee50d161f372a05423f846"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
 // --- Data Storage ---
 let services = [];
 let sales = [];
@@ -56,17 +72,24 @@ tabBtns.forEach(btn => {
 });
 
 // --- Local Storage ---
-function saveAll() {
-    localStorage.setItem('services', JSON.stringify(services));
-    localStorage.setItem('sales', JSON.stringify(sales));
-    localStorage.setItem('deductions', JSON.stringify(deductions));
-    localStorage.setItem('allDeductions', JSON.stringify(allDeductions));
+async function saveAll() {
+    await setDoc(doc(db, "lumiprints", "data"), {
+        services,
+        sales,
+        deductions,
+        allDeductions
+    });
 }
-function loadAll() {
-    services = JSON.parse(localStorage.getItem('services') || '[]');
-    sales = JSON.parse(localStorage.getItem('sales') || '[]');
-    deductions = JSON.parse(localStorage.getItem('deductions') || '[]');
-    allDeductions = JSON.parse(localStorage.getItem('allDeductions') || '[]');
+async function loadAll(callback) {
+    const docSnap = await getDoc(doc(db, "lumiprints", "data"));
+    if (docSnap.exists()) {
+        const data = docSnap.data();
+        services = data.services || [];
+        sales = data.sales || [];
+        deductions = data.deductions || [];
+        allDeductions = data.allDeductions || [];
+    }
+    if (callback) callback();
 }
 
 // --- Dashboard ---
@@ -405,19 +428,35 @@ if (resetDataBtn) {
 
 // --- Initialization ---
 function init() {
-    loadAll();
-    renderServices();
-    renderSales();
-    renderDeductions();
-    renderDashboard();
-    updatePendingSalesTable();
-    updateDeductionBalance();
-    // Set today's date for forms
-    const today = new Date().toISOString().split('T')[0];
-    saleDate.value = today;
-    deductionDate.value = today;
-    saleCategory.value = '';
-    updateSaleServiceDropdown('', saleService);
+    loadAll(() => {
+        renderServices();
+        renderSales();
+        renderDeductions();
+        renderDashboard();
+        updatePendingSalesTable();
+        updateDeductionBalance();
+        // Set today's date for forms
+        const today = new Date().toISOString().split('T')[0];
+        saleDate.value = today;
+        deductionDate.value = today;
+        saleCategory.value = '';
+        updateSaleServiceDropdown('', saleService);
+    });
+    onSnapshot(doc(db, "lumiprints", "data"), (docSnap) => {
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            services = data.services || [];
+            sales = data.sales || [];
+            deductions = data.deductions || [];
+            allDeductions = data.allDeductions || [];
+            renderServices();
+            renderSales();
+            renderDeductions();
+            renderDashboard();
+            updatePendingSalesTable();
+            updateDeductionBalance();
+        }
+    });
 }
 window.onload = init;
 
