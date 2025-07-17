@@ -337,8 +337,4 @@ input[type="checkbox"].peer + div {
 
 .metric-card {
   min-width: 0;
-}
-
-#tab-dashboard h1, #tab-dashboard p {
-  display: none !important;
 } 

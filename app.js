@@ -22,7 +22,6 @@ const saleCategory = document.getElementById('saleCategory');
 const saleService = document.getElementById('saleService');
 const saleQuantity = document.getElementById('saleQuantity');
 const saleUnitPrice = document.getElementById('saleUnitPrice');
-const addServiceToCustomerBtn = document.getElementById('addServiceToCustomer');
 const pendingSalesTable = document.getElementById('pendingSalesTable');
 const pendingSalesTotal = document.getElementById('pendingSalesTotal');
 const submitSalesForCustomerBtn = document.getElementById('submitSalesForCustomer');
@@ -332,42 +331,6 @@ function updatePendingSalesTable() {
 window.removePendingSale = function(i) {
     pendingSales.splice(i, 1);
     updatePendingSalesTable();
-};
-addServiceToCustomerBtn.onclick = function() {
-    if (!saleDate.value || !saleCustomer.value || !saleCategory.value || !saleService.value || !saleQuantity.value || !saleUnitPrice.value) {
-        alert('Please fill in all fields.');
-        return;
-    }
-    pendingSales.push({
-        date: saleDate.value,
-        customer: saleCustomer.value.trim(),
-        category: saleCategory.value,
-        service: saleService.value,
-        quantity: parseInt(saleQuantity.value),
-        unitPrice: parseFloat(saleUnitPrice.value),
-        total: parseInt(saleQuantity.value) * parseFloat(saleUnitPrice.value),
-        paid: false // Default to not paid
-    });
-    updatePendingSalesTable();
-    // Reset only the service/qty/price fields
-    saleCategory.value = '';
-    updateSaleServiceDropdown('', saleService);
-    saleQuantity.value = 1;
-    saleUnitPrice.value = '';
-};
-submitSalesForCustomerBtn.onclick = async function() {
-    if (pendingSales.length === 0) {
-        alert('No services added for this customer.');
-        return;
-    }
-    for (const sale of pendingSales) {
-        await window.db.collection("sales").add(sale);
-    }
-    pendingSales = [];
-    updatePendingSalesTable();
-    await loadSales();
-    saleDate.value = new Date().toISOString().split('T')[0];
-    saleCustomer.value = '';
 };
 
 // --- Sales Table ---
