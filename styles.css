@@ -337,4 +337,11 @@ input[type="checkbox"].peer + div {
 
 .metric-card {
   min-width: 0;
+}
+
+table, thead, tbody, th, td, tr {
+  border: 1px solid #2563eb !important;
+  background: #f8fafc !important;
+  color: #222 !important;
+  display: table-cell !important;
 } 

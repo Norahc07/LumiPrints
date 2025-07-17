@@ -47,9 +47,7 @@ function setActiveNav(tab) {
   document.querySelectorAll('.bottom-nav .nav-btn').forEach(btn => btn.classList.remove('active'));
   const navBtn = document.getElementById('nav-' + tab);
   if (navBtn) navBtn.classList.add('active');
-  // Show FAB only on Services tab (mobile)
-  const fab = document.getElementById('fab-add-service');
-  if (fab) fab.style.display = (tab === 'services' && window.innerWidth <= 640) ? 'flex' : 'none';
+  // FAB logic removed (no longer needed)
 }
 // Patch all tab switches to call setActiveNav
 tabBtns.forEach(btn => {
@@ -83,13 +81,6 @@ window.addEventListener('DOMContentLoaded', function() {
   }
   setActiveNav(activeTab);
 });
-// --- FAB Add Service Button ---
-const fabAddService = document.getElementById('fab-add-service');
-if (fabAddService) {
-  fabAddService.onclick = function() {
-    if (window.openAddServiceModal) window.openAddServiceModal();
-  };
-}
 
 // --- Local Storage ---
 function saveAll() {
@@ -101,6 +92,7 @@ function loadAll() {
 
 // --- Dashboard ---
 function renderDashboard() {
+    console.log('renderDashboard called', {services, sales, deductions});
     const filter = dashboardFilter.value;
     const now = new Date();
     let start, end;
@@ -157,6 +149,7 @@ dashboardFilter.addEventListener('change', renderDashboard);
 
 // --- Services CRUD ---
 function renderServices() {
+    console.log('renderServices called', services);
     printingServicesTable.innerHTML = '';
     layoutServicesTable.innerHTML = '';
     services.forEach((s, i) => {
@@ -335,6 +328,7 @@ window.removePendingSale = function(i) {
 
 // --- Sales Table ---
 function renderSales() {
+    console.log('renderSales called', sales);
     salesTable.innerHTML = '';
     sales.forEach((s, i) => {
         salesTable.innerHTML += `<tr class="text-xs sm:text-sm">
