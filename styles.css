@@ -52,20 +52,27 @@ input[type="number"] {
 }
 table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    font-size: 1rem;
+    background: #fff;
+    overflow: hidden;
 }
 th, td {
-    padding: 0.75rem 1rem;
+    padding: 0.85rem 1rem;
     text-align: left;
     border-bottom: 1px solid #e2e8f0;
+    font-size: 1rem;
 }
 th {
     background-color: #f8fafc;
-    color: #4a5568;
-    font-weight: 600;
-    position: sticky;
-    top: 0;
-    z-index: 10;
+    color: #2563eb;
+    font-weight: 700;
+}
+tr:nth-child(even) td {
+    background: #f3f4f6;
 }
 tr:last-child td {
     border-bottom: none;
@@ -316,6 +323,20 @@ input[type="checkbox"].peer + div {
   }
   .dashboard-heading {
     display: none !important;
+  }
+  table {
+    font-size: 0.92rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  th, td {
+    padding: 0.65rem 0.5rem;
+    font-size: 0.92rem;
+  }
+  .overflow-x-auto, .scrollable-table-container {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100vw;
   }
 }
 .bottom-nav .nav-btn.active, .bottom-nav .nav-btn:active {

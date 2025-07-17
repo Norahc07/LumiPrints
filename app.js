@@ -371,6 +371,32 @@ window.toggleSalePaid = async function(i) {
     await loadSales();
 };
 
+// --- Sales Log Submit Button ---
+submitSalesForCustomerBtn.onclick = async function() {
+    if (!saleDate.value || !saleCustomer.value || !saleCategory.value || !saleService.value || !saleQuantity.value || !saleUnitPrice.value) {
+        alert('Please fill in all fields.');
+        return;
+    }
+    const sale = {
+        date: saleDate.value,
+        customer: saleCustomer.value.trim(),
+        category: saleCategory.value,
+        service: saleService.value,
+        quantity: parseInt(saleQuantity.value),
+        unitPrice: parseFloat(saleUnitPrice.value),
+        total: parseInt(saleQuantity.value) * parseFloat(saleUnitPrice.value),
+        paid: false // Default to not paid
+    };
+    await window.db.collection("sales").add(sale);
+    await loadSales();
+    saleDate.value = new Date().toISOString().split('T')[0];
+    saleCustomer.value = '';
+    saleCategory.value = '';
+    updateSaleServiceDropdown('', saleService);
+    saleQuantity.value = 1;
+    saleUnitPrice.value = '';
+};
+
 // --- Deductions ---
 function getIncomeBalance() {
     const totalSales = sales.filter(s => s.paid).reduce((sum, s) => sum + s.total, 0);
