@@ -131,7 +131,7 @@
         <!-- Sales Log -->
         <div id="tab-sales" class="tab-content hidden">
             <h2 class="text-2xl font-semibold mb-4 flex items-center text-green-700"><span class="material-icons mr-2">receipt_long</span>Sales Log</h2>
-            <form id="salesForm" class="bg-white rounded-xl shadow p-4 mb-6 grid grid-cols-1 md:grid-cols-6 gap-4 w-full">
+            <form id="salesForm" class="bg-white rounded-xl shadow p-4 mb-6 grid grid-cols-1 md:grid-cols-6 gap-4">
                 <input type="date" id="saleDate" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-green-400" />
                 <input type="text" id="saleCustomer" placeholder="Customer Name" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-green-400" />
                 <select id="saleCategory" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-green-400">
@@ -147,8 +147,8 @@
                 <button type="button" id="addServiceToCustomer" class="col-span-1 md:col-span-6 bg-blue-600 text-white rounded px-4 py-2 mt-2 hover:bg-blue-700 transition">Add Service</button>
             </form>
             <!-- List of services for this customer/date -->
-            <div class="mb-4 overflow-x-auto w-full">
-                <table class="min-w-full text-xs sm:text-sm divide-y divide-gray-200 rounded-lg shadow-sm">
+            <div class="mb-4">
+                <table class="min-w-full divide-y divide-gray-200 rounded-lg shadow-sm">
                     <thead>
                         <tr>
                             <th class="px-4 py-2">Category</th>
@@ -235,7 +235,7 @@
             <h2 class="text-2xl font-semibold mb-4 flex items-center text-blue-700">
                 <span class="material-icons mr-2">list_alt</span>Services Price List
             </h2>
-            <form id="serviceForm" class="bg-white rounded-xl shadow p-4 mb-6 grid grid-cols-1 md:grid-cols-4 gap-4 w-full">
+            <form id="serviceForm" class="bg-white rounded-xl shadow p-4 mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
                 <input type="text" id="serviceName" placeholder="Service Name" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-blue-400" />
                 <select id="serviceCategory" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-blue-400">
                     <option value="" selected disabled>Service Type</option>
@@ -271,11 +271,11 @@
                 <input type="number" id="servicePrice" min="0" step="0.01" placeholder="Standard Price" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-blue-400" />
                 <button type="submit" class="col-span-1 md:col-span-4 bg-blue-600 text-white rounded px-4 py-2 mt-2 hover:bg-blue-700 transition">Add Service</button>
             </form>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
                     <h3 class="text-lg font-semibold mb-2 text-blue-600 flex items-center"><span class="material-icons mr-2">print</span>Printing Services</h3>
-                    <div class="overflow-x-auto rounded-lg shadow w-full">
-                        <table class="min-w-full text-xs sm:text-sm divide-y divide-gray-200 rounded-lg shadow-sm">
+                    <div class="overflow-x-auto rounded-lg shadow">
+                        <table class="min-w-full divide-y divide-gray-200 rounded-lg shadow-sm">
                             <thead class="bg-gray-50 sticky top-0 z-10">
                                 <tr>
                                     <th class="px-4 py-2">Service Name</th>
@@ -291,8 +291,8 @@
                 </div>
                 <div>
                     <h3 class="text-lg font-semibold mb-2 text-pink-600 flex items-center"><span class="material-icons mr-2">brush</span>Layout Services</h3>
-                    <div class="overflow-x-auto rounded-lg shadow w-full">
-                        <table class="min-w-full text-xs sm:text-sm divide-y divide-gray-200 rounded-lg shadow-sm">
+                    <div class="overflow-x-auto rounded-lg shadow">
+                        <table class="min-w-full divide-y divide-gray-200 rounded-lg shadow-sm">
                             <thead class="bg-gray-50 sticky top-0 z-10">
                                 <tr>
                                     <th class="px-4 py-2">Service Name</th>
@@ -353,14 +353,14 @@
                 <span class="font-semibold text-gray-700">Income Balance:</span>
                 <span id="deductionIncomeBalance" class="font-bold text-lg text-blue-700">PHP 0.00</span>
             </div>
-            <form id="deductionForm" class="bg-white rounded-xl shadow p-4 mb-6 grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+            <form id="deductionForm" class="bg-white rounded-xl shadow p-4 mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
                 <input type="date" id="deductionDate" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-red-400" />
                 <input type="text" id="deductionDesc" placeholder="Description" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-red-400" />
                 <input type="number" id="deductionAmount" min="0" step="0.01" placeholder="Amount" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-red-400" />
                 <button type="submit" class="col-span-1 md:col-span-3 bg-red-600 text-white rounded px-4 py-2 mt-2 hover:bg-red-700 transition">Add Deduction</button>
             </form>
-            <div class="overflow-x-auto rounded-lg shadow w-full">
-                <table class="min-w-full text-xs sm:text-sm divide-y divide-gray-200 rounded-lg shadow-sm">
+            <div class="overflow-x-auto rounded-lg shadow">
+                <table class="min-w-full divide-y divide-gray-200 rounded-lg shadow-sm">
                     <thead class="bg-gray-50 sticky top-0 z-10">
                         <tr>
                             <th class="px-4 py-2">Date</th>
