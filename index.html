@@ -373,6 +373,29 @@
             </div>
         </div>
     </div>
+    <!-- Firebase SDKs (add before your app.js) -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+      import { getFirestore } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+      // (Optional) import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-analytics.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyDUI4fIc2bY_50CgU_d6z7GmM2iiTQ0sTA",
+        authDomain: "lumiprints-app.firebaseapp.com",
+        projectId: "lumiprints-app",
+        storageBucket: "lumiprints-app.appspot.com",
+        messagingSenderId: "109365807470",
+        appId: "1:109365807470:web:86fd91ec627ce1b43e597f",
+        measurementId: "G-R6WZJJ11CV"
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      // Initialize Firestore
+      window.db = getFirestore(app);
+      // (Optional) const analytics = getAnalytics(app);
+    </script>
+    <!-- Your app.js should come after this -->
     <script src="app.js"></script>
 </body>
 </html> 

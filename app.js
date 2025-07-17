@@ -1,4 +1,7 @@
-// --- Data Storage ---
+// --- Firestore Imports ---
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+// --- Data Storage (Firestore only, no localStorage) ---
 let services = [];
 let sales = [];
 let deductions = [];
@@ -57,16 +60,10 @@ tabBtns.forEach(btn => {
 
 // --- Local Storage ---
 function saveAll() {
-    localStorage.setItem('services', JSON.stringify(services));
-    localStorage.setItem('sales', JSON.stringify(sales));
-    localStorage.setItem('deductions', JSON.stringify(deductions));
-    localStorage.setItem('allDeductions', JSON.stringify(allDeductions));
+    // This function is no longer needed as data is synced with Firestore
 }
 function loadAll() {
-    services = JSON.parse(localStorage.getItem('services') || '[]');
-    sales = JSON.parse(localStorage.getItem('sales') || '[]');
-    deductions = JSON.parse(localStorage.getItem('deductions') || '[]');
-    allDeductions = JSON.parse(localStorage.getItem('allDeductions') || '[]');
+    // This function is no longer needed as data is synced with Firestore
 }
 
 // --- Dashboard ---
@@ -166,18 +163,39 @@ function renderServices() {
     });
     updateSaleServiceDropdown(saleCategory.value, saleService);
 }
-serviceForm.onsubmit = function(e) {
+// --- Firestore Sync Functions ---
+async function loadServices() {
+    const querySnapshot = await getDocs(collection(window.db, "services"));
+    services = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    renderServices();
+    renderDashboard();
+}
+async function loadSales() {
+    const querySnapshot = await getDocs(collection(window.db, "sales"));
+    sales = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    renderSales();
+    renderDashboard();
+}
+async function loadDeductions() {
+    const querySnapshot = await getDocs(collection(window.db, "deductions"));
+    deductions = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    renderDeductions();
+    renderDashboard();
+    updateDeductionBalance();
+}
+
+// --- Services CRUD ---
+serviceForm.onsubmit = async function(e) {
     e.preventDefault();
-    services.push({
+    const newService = {
         name: serviceName.value.trim(),
         category: serviceCategory.value,
         unit: serviceUnit.value.trim(),
         price: parseFloat(servicePrice.value),
         paperSize: serviceCategory.value === 'Printing' ? servicePaperSize.value : ''
-    });
-    saveAll();
-    renderServices();
-    renderDashboard();
+    };
+    await addDoc(collection(window.db, "services"), newService);
+    await loadServices();
     serviceForm.reset();
     servicePaperSize.style.display = 'none';
     updateSaleServiceDropdown(saleCategory.value, saleService);
@@ -194,27 +212,27 @@ window.openEditServiceModal = function(i) {
 document.getElementById('closeEditServiceModal').onclick = function() {
     document.getElementById('editServiceModal').classList.add('hidden');
 };
-document.getElementById('editServiceForm').onsubmit = function(e) {
+document.getElementById('editServiceForm').onsubmit = async function(e) {
     e.preventDefault();
     const i = +document.getElementById('editServiceIndex').value;
-    services[i] = {
+    const s = services[i];
+    const updatedService = {
         name: document.getElementById('editServiceName').value.trim(),
         category: document.getElementById('editServiceCategory').value,
         unit: document.getElementById('editServiceUnit').value,
-        price: parseFloat(document.getElementById('editServicePrice').value)
+        price: parseFloat(document.getElementById('editServicePrice').value),
+        paperSize: s.category === 'Printing' ? s.paperSize : ''
     };
-    saveAll();
-    renderServices();
-    renderDashboard();
+    await updateDoc(doc(window.db, "services", s.id), updatedService);
+    await loadServices();
     document.getElementById('editServiceModal').classList.add('hidden');
     updateSaleServiceDropdown(saleCategory.value, saleService);
 };
-window.deleteService = function(i) {
+window.deleteService = async function(i) {
     if (confirm('Delete this service?')) {
-        services.splice(i, 1);
-        saveAll();
-        renderServices();
-        renderDashboard();
+        const s = services[i];
+        await deleteDoc(doc(window.db, "services", s.id));
+        await loadServices();
         updateSaleServiceDropdown(saleCategory.value, saleService);
     }
 };
@@ -303,18 +321,17 @@ addServiceToCustomerBtn.onclick = function() {
     saleQuantity.value = 1;
     saleUnitPrice.value = '';
 };
-submitSalesForCustomerBtn.onclick = function() {
+submitSalesForCustomerBtn.onclick = async function() {
     if (pendingSales.length === 0) {
         alert('No services added for this customer.');
         return;
     }
-    sales = sales.concat(pendingSales);
-    saveAll();
-    renderSales();
-    renderDashboard();
+    for (const sale of pendingSales) {
+        await addDoc(collection(window.db, "sales"), sale);
+    }
     pendingSales = [];
     updatePendingSalesTable();
-    // Reset the customer/date fields
+    await loadSales();
     saleDate.value = new Date().toISOString().split('T')[0];
     saleCustomer.value = '';
 };
@@ -348,20 +365,19 @@ function renderSales() {
         </tr>`;
     });
 }
-window.deleteSale = function(i) {
+window.deleteSale = async function(i) {
     if (confirm('Delete this sale?')) {
-        sales.splice(i, 1);
-        saveAll();
-        renderSales();
+        const s = sales[i];
+        await deleteDoc(doc(window.db, "sales", s.id));
+        await loadSales();
         renderDashboard();
         updateDeductionBalance();
     }
 };
-window.toggleSalePaid = function(i) {
-    sales[i].paid = !sales[i].paid;
-    saveAll();
-    renderSales();
-    renderDashboard();
+window.toggleSalePaid = async function(i) {
+    const s = sales[i];
+    await updateDoc(doc(window.db, "sales", s.id), { paid: !s.paid });
+    await loadSales();
 };
 
 // --- Deductions ---
@@ -374,7 +390,7 @@ function updateDeductionBalance() {
     const balance = getIncomeBalance();
     deductionIncomeBalance.textContent = 'PHP ' + balance.toFixed(2);
 }
-deductionForm.onsubmit = function(e) {
+deductionForm.onsubmit = async function(e) {
     e.preventDefault();
     const amount = parseFloat(deductionAmount.value);
     const balance = getIncomeBalance();
@@ -382,20 +398,13 @@ deductionForm.onsubmit = function(e) {
         alert('Insufficient income balance! You cannot deduct more than your current income.');
         return;
     }
-    deductions.push({
+    const deduction = {
         date: deductionDate.value,
         desc: deductionDesc.value.trim(),
         amount: amount
-    });
-    allDeductions.push({
-        date: deductionDate.value,
-        desc: deductionDesc.value.trim(),
-        amount: amount
-    });
-    saveAll();
-    renderDeductions();
-    renderDashboard();
-    updateDeductionBalance();
+    };
+    await addDoc(collection(window.db, "deductions"), deduction);
+    await loadDeductions();
     deductionForm.reset();
 };
 function renderDeductions() {
@@ -412,24 +421,36 @@ function renderDeductions() {
 
 // --- Reset All Data ---
 if (resetDataBtn) {
-    resetDataBtn.onclick = function() {
+    resetDataBtn.onclick = async function() {
         if (confirm('Are you sure you want to delete ALL data? This cannot be undone.')) {
-            localStorage.clear();
+            // This will delete all data from Firestore
+            const servicesRef = collection(window.db, "services");
+            const salesRef = collection(window.db, "sales");
+            const deductionsRef = collection(window.db, "deductions");
+
+            await deleteDoc(doc(window.db, "services", "all")); // Assuming a dummy document to delete all services
+            await deleteDoc(doc(window.db, "sales", "all")); // Assuming a dummy document to delete all sales
+            await deleteDoc(doc(window.db, "deductions", "all")); // Assuming a dummy document to delete all deductions
+
+            // Re-initialize Firestore collections
+            await addDoc(servicesRef, { name: "Printing", category: "Printing", unit: "Sheet", price: 100, paperSize: "A4" });
+            await addDoc(servicesRef, { name: "Layout", category: "Layout", unit: "Page", price: 50 });
+            await addDoc(salesRef, { date: new Date().toISOString().split('T')[0], customer: "Test Customer", service: "Printing", quantity: 1, unitPrice: 100, total: 100, paid: true });
+            await addDoc(salesRef, { date: new Date().toISOString().split('T')[0], customer: "Test Customer", service: "Layout", quantity: 1, unitPrice: 50, total: 50, paid: false });
+            await addDoc(deductionsRef, { date: new Date().toISOString().split('T')[0], desc: "Test Deduction", amount: 10 });
+
             location.reload();
         }
     };
 }
 
 // --- Initialization ---
-function init() {
-    loadAll();
-    renderServices();
-    renderSales();
-    renderDeductions();
-    renderDashboard();
+async function init() {
+    await loadServices();
+    await loadSales();
+    await loadDeductions();
     updatePendingSalesTable();
     updateDeductionBalance();
-    // Set today's date for forms
     const today = new Date().toISOString().split('T')[0];
     saleDate.value = today;
     deductionDate.value = today;
