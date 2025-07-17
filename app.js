@@ -43,7 +43,6 @@ const salesTable = document.getElementById('salesTable');
 const resetDataBtn = document.getElementById('resetDataBtn');
 const servicePaperSize = document.getElementById('servicePaperSize');
 
-// --- Tab Navigation ---
 // --- Navigation Active State ---
 function setActiveNav(tab) {
   document.querySelectorAll('.bottom-nav .nav-btn').forEach(btn => btn.classList.remove('active'));
@@ -54,10 +53,25 @@ function setActiveNav(tab) {
   if (fab) fab.style.display = (tab === 'services' && window.innerWidth <= 640) ? 'flex' : 'none';
 }
 // Patch all tab switches to call setActiveNav
-const tabBtns = document.querySelectorAll('.tab-btn');
 tabBtns.forEach(btn => {
   btn.addEventListener('click', function() {
     setActiveNav(this.dataset.tab);
+  });
+});
+// --- Bottom Nav Button Logic ---
+document.querySelectorAll('.bottom-nav .nav-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const tab = this.dataset.tab;
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(tc => tc.classList.add('hidden'));
+    // Show the selected tab
+    const showTab = document.getElementById('tab-' + tab);
+    if (showTab) showTab.classList.remove('hidden');
+    // Update active nav
+    setActiveNav(tab);
+    // Optionally trigger render logic
+    if (tab === 'dashboard') renderDashboard();
+    if (tab === 'deductions') updateDeductionBalance();
   });
 });
 // On load, set initial active nav

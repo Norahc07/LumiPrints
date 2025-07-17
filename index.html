@@ -31,8 +31,9 @@
     <div class="container mx-auto bg-white p-4 sm:p-6 md:p-10 rounded-2xl shadow-2xl mt-4 mb-8 max-w-5xl w-full">
         <div class="flex flex-col items-center mb-4">
             <img src="lumiprintsLogo.png" alt="LumiPrints Logo" class="mb-4" style="width: 180px; max-width: 90vw;" />
-            <h1 class="text-4xl font-extrabold text-center text-gray-800 mb-2 tracking-tight">Business Log & Profit Tracker</h1>
-            <p class="text-gray-500 text-center mb-4">Professional, simple, and automated business tracking for your printing and layout services.</p>
+            <!-- Hide the following elements on all screens -->
+            <h1 class="text-4xl font-extrabold text-center text-gray-800 mb-2 tracking-tight" style="display:none;">Business Log & Profit Tracker</h1>
+            <p class="text-gray-500 text-center mb-4" style="display:none;">Professional, simple, and automated business tracking for your printing and layout services.</p>
         </div>
         <!-- Remove or hide top tab buttons for mobile -->
     <div class="tabs flex flex-col sm:flex-row justify-center mb-8 gap-2 w-full" style="display:none;" aria-hidden="true">
@@ -365,15 +366,13 @@
     </div>
     <!-- Bottom Navigation for Mobile -->
     <nav class="bottom-nav md:hidden fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around z-50 shadow-lg">
-      <button class="nav-btn flex flex-col items-center py-2" id="nav-dashboard" aria-current="page" onclick="document.querySelector('.tab-btn[data-tab=dashboard]').click()"><span class="material-icons">dashboard</span><span class="text-xs">Dashboard</span></button>
-      <button class="nav-btn flex flex-col items-center py-2" id="nav-sales" onclick="document.querySelector('.tab-btn[data-tab=sales]').click()"><span class="material-icons">receipt_long</span><span class="text-xs">Sales</span></button>
-      <button class="nav-btn flex flex-col items-center py-2" id="nav-services" onclick="document.querySelector('.tab-btn[data-tab=services]').click()"><span class="material-icons">design_services</span><span class="text-xs">Services</span></button>
-      <button class="nav-btn flex flex-col items-center py-2" id="nav-deductions" onclick="document.querySelector('.tab-btn[data-tab=deductions]').click()"><span class="material-icons">remove_circle</span><span class="text-xs">Deductions</span></button>
+      <button class="nav-btn flex flex-col items-center py-2" id="nav-dashboard" data-tab="dashboard" aria-current="page"><span class="material-icons">dashboard</span><span class="text-xs">Dashboard</span></button>
+      <button class="nav-btn flex flex-col items-center py-2" id="nav-sales" data-tab="sales"><span class="material-icons">receipt_long</span><span class="text-xs">Sales</span></button>
+      <button class="nav-btn flex flex-col items-center py-2" id="nav-services" data-tab="services"><span class="material-icons">design_services</span><span class="text-xs">Services</span></button>
+      <button class="nav-btn flex flex-col items-center py-2" id="nav-deductions" data-tab="deductions"><span class="material-icons">remove_circle</span><span class="text-xs">Deductions</span></button>
     </nav>
     <!-- Floating Action Button for Mobile (example for adding service) -->
-    <button id="fab-add-service" class="fixed bottom-16 right-4 z-50 bg-blue-600 text-white rounded-full shadow-lg p-4 flex items-center justify-center md:hidden" style="display:none;">
-      <span class="material-icons text-2xl">add</span>
-    </button>
+    <!-- (FAB button code removed) -->
     <!-- Card containers for mobile, hidden on desktop -->
     <div id="mobileServiceCards" class="block md:hidden"></div>
     <div id="mobileSalesCards" class="block md:hidden"></div>
