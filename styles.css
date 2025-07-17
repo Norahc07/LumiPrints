@@ -233,33 +233,101 @@ input[type="checkbox"].peer + div {
 }
 
 @media (max-width: 640px) {
-  .container {
-    padding: 0.5rem;
-    border-radius: 0.5rem;
+  .container, .tab-content {
+    padding: 0.5rem !important;
   }
-  .tab-btn {
-    width: 100%;
-    border-radius: 0.5rem;
-    margin-bottom: 0.25rem;
-    font-size: 1rem;
-    padding: 0.75rem 0.5rem;
-  }
-  .modal-content {
-    width: 98vw;
-    min-width: unset;
-    padding: 0.5rem;
-  }
-  input, select, button {
-    width: 100% !important;
-    font-size: 1rem;
+  .metric-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem;
     margin-bottom: 0.5rem;
   }
-  table {
-    font-size: 0.85rem;
+  .tab-btn, .nav-btn {
+    width: 100%;
+    font-size: 1.1rem;
+    padding: 1rem 0;
+    border-radius: 0.75rem;
+    margin-bottom: 0.5rem;
   }
-  th, td {
-    padding: 0.5rem 0.5rem;
+  table, thead, tbody, th, td, tr {
+    display: none !important;
   }
+  #mobileServiceCards, #mobileSalesCards {
+    display: block !important;
+    margin-bottom: 4rem;
+  }
+  .service-card, .sales-card {
+    background: #fff;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .service-card .card-header, .sales-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .service-card .card-title {
+    font-weight: bold;
+    font-size: 1.1rem;
+  }
+  .service-card .card-meta {
+    font-size: 0.95rem;
+    color: #555;
+  }
+  .service-card .card-actions, .sales-card .card-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+  .service-card .card-actions button, .sales-card .card-actions button {
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+  }
+  .bottom-nav {
+    display: flex;
+    justify-content: space-around;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: #fff;
+    border-top: 1px solid #e5e7eb;
+    z-index: 50;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.04);
+  }
+  #fab-add-service {
+    display: flex !important;
+    position: fixed;
+    bottom: 4.5rem;
+    right: 1.25rem;
+    z-index: 60;
+    box-shadow: 0 4px 16px rgba(37,99,235,0.15);
+  }
+  .tabs {
+    display: none !important;
+  }
+  .tabs {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}
+.bottom-nav .nav-btn.active, .bottom-nav .nav-btn:active {
+  color: #2563eb !important;
+  background: #e0e7ff !important;
+  box-shadow: 0 2px 8px rgba(37,99,235,0.08);
+  border-top: 2px solid #2563eb;
+  font-weight: bold;
+}
+.bottom-nav .nav-btn:hover {
+  background: #f3f4f6 !important;
+  color: #1d4ed8 !important;
 }
 
 .scrollable-table-container, .overflow-x-auto {

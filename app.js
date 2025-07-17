@@ -44,16 +44,39 @@ const resetDataBtn = document.getElementById('resetDataBtn');
 const servicePaperSize = document.getElementById('servicePaperSize');
 
 // --- Tab Navigation ---
+// --- Navigation Active State ---
+function setActiveNav(tab) {
+  document.querySelectorAll('.bottom-nav .nav-btn').forEach(btn => btn.classList.remove('active'));
+  const navBtn = document.getElementById('nav-' + tab);
+  if (navBtn) navBtn.classList.add('active');
+  // Show FAB only on Services tab (mobile)
+  const fab = document.getElementById('fab-add-service');
+  if (fab) fab.style.display = (tab === 'services' && window.innerWidth <= 640) ? 'flex' : 'none';
+}
+// Patch all tab switches to call setActiveNav
+const tabBtns = document.querySelectorAll('.tab-btn');
 tabBtns.forEach(btn => {
-    btn.addEventListener('click', function() {
-        tabBtns.forEach(b => b.classList.remove('active'));
-        tabContents.forEach(tc => tc.classList.add('hidden'));
-        this.classList.add('active');
-        document.getElementById('tab-' + this.dataset.tab).classList.remove('hidden');
-        if (this.dataset.tab === 'dashboard') renderDashboard();
-        if (this.dataset.tab === 'deductions') updateDeductionBalance();
-    });
+  btn.addEventListener('click', function() {
+    setActiveNav(this.dataset.tab);
+  });
 });
+// On load, set initial active nav
+window.addEventListener('DOMContentLoaded', function() {
+  let activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
+  if (!activeTab) {
+    // Fallback: check which tab is visible
+    const visibleTab = Array.from(document.querySelectorAll('.tab-content')).find(tc => !tc.classList.contains('hidden'));
+    activeTab = visibleTab ? visibleTab.id.replace('tab-', '') : 'dashboard';
+  }
+  setActiveNav(activeTab);
+});
+// --- FAB Add Service Button ---
+const fabAddService = document.getElementById('fab-add-service');
+if (fabAddService) {
+  fabAddService.onclick = function() {
+    if (window.openAddServiceModal) window.openAddServiceModal();
+  };
+}
 
 // --- Local Storage ---
 function saveAll() {
