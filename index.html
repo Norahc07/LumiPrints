@@ -31,14 +31,11 @@
     <div class="container mx-auto bg-white p-4 sm:p-6 md:p-10 rounded-2xl shadow-2xl mt-4 mb-8 max-w-5xl w-full">
         <div class="flex flex-col items-center mb-4">
             <img src="lumiprintsLogo.png" alt="LumiPrints Logo" class="mb-4" style="width: 180px; max-width: 90vw;" />
-            <!-- Hide the following elements on all screens -->
-            <h1 class="text-4xl font-extrabold text-center text-gray-800 mb-2 tracking-tight" style="display:none;">Business Log & Profit Tracker</h1>
-            <p class="text-gray-500 text-center mb-4" style="display:none;">Professional, simple, and automated business tracking for your printing and layout services.</p>
+            <h1 class="text-4xl font-extrabold text-center text-gray-800 mb-2 tracking-tight dashboard-heading">Business Log & Profit Tracker</h1>
+            <p class="text-gray-500 text-center mb-4 dashboard-heading">Professional, simple, and automated business tracking for your printing and layout services.</p>
         </div>
         <!-- Remove or hide top tab buttons for mobile -->
-    <div class="tabs flex flex-col sm:flex-row justify-center mb-8 gap-2 w-full" style="display:none;" aria-hidden="true">
-      <!-- Tab buttons here, but hidden on mobile -->
-    </div>
+        <!-- (Tabs navigation removed) -->
         <!-- Dashboard -->
         <div id="tab-dashboard" class="tab-content">
             <div class="flex flex-wrap gap-4 mb-6 items-center justify-between">
@@ -52,7 +49,8 @@
                     </select>
                 </div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <!-- Center metric cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 justify-center items-center text-center">
                 <div class="metric-card bg-gradient-to-r from-blue-500 to-blue-300 text-white flex items-center gap-4">
                     <span class="material-icons text-4xl">account_balance_wallet</span>
                     <div>
