@@ -56,7 +56,6 @@ table {
     border-spacing: 0;
     border-radius: 0.75rem;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    font-size: 1rem;
     background: #fff;
     overflow: hidden;
 }
@@ -71,11 +70,11 @@ th {
     color: #2563eb;
     font-weight: 700;
 }
-tr:nth-child(even) td {
-    background: #f3f4f6;
-}
 tr:last-child td {
     border-bottom: none;
+}
+tr:nth-child(even) td {
+    background: #f9fafb;
 }
 .metric-card {
     background-color: #ffffff;
