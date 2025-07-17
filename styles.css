@@ -334,8 +334,15 @@ input[type="checkbox"].peer + div {
   }
   .overflow-x-auto, .scrollable-table-container {
     overflow-x: auto !important;
+    overflow-y: auto !important;
+    max-height: 60vh;
     -webkit-overflow-scrolling: touch;
     max-width: 100vw;
+  }
+  .tab-content {
+    overflow-y: auto !important;
+    max-height: 80vh;
+    padding-bottom: 5rem;
   }
 }
 .bottom-nav .nav-btn.active, .bottom-nav .nav-btn:active {
