@@ -130,8 +130,8 @@ function renderServices() {
                 <tr class="text-xs sm:text-sm">
                     <td class="px-4 py-2">${s.name}</td>
                     <td class="px-4 py-2">${s.unit}</td>
-                    <td class="px-4 py-2">${s.paperSize || ''}</td>
                     <td class="px-4 py-2">PHP ${parseFloat(s.price).toFixed(2)}</td>
+                    <td class="px-4 py-2">${s.paperSize || ''}</td>
                     <td class="px-4 py-2">
                         <div class='service-actions'>
                             <button onclick="openEditServiceModal(${i})" class="text-blue-600 material-icons align-middle" title="Edit">edit</button>
