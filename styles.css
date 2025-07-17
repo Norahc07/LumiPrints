@@ -249,9 +249,6 @@ input[type="checkbox"].peer + div {
     border-radius: 0.75rem;
     margin-bottom: 0.5rem;
   }
-  table, thead, tbody, th, td, tr {
-    display: none !important;
-  }
   #mobileServiceCards, #mobileSalesCards {
     display: block !important;
     margin-bottom: 4rem;
