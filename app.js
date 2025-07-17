@@ -1,6 +1,3 @@
-// --- Firestore Imports ---
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
-
 // --- Data Storage (Firestore only, no localStorage) ---
 let services = [];
 let sales = [];
@@ -165,19 +162,19 @@ function renderServices() {
 }
 // --- Firestore Sync Functions ---
 async function loadServices() {
-    const querySnapshot = await getDocs(collection(window.db, "services"));
+    const querySnapshot = await window.db.collection("services").get();
     services = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     renderServices();
     renderDashboard();
 }
 async function loadSales() {
-    const querySnapshot = await getDocs(collection(window.db, "sales"));
+    const querySnapshot = await window.db.collection("sales").get();
     sales = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     renderSales();
     renderDashboard();
 }
 async function loadDeductions() {
-    const querySnapshot = await getDocs(collection(window.db, "deductions"));
+    const querySnapshot = await window.db.collection("deductions").get();
     deductions = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     renderDeductions();
     renderDashboard();
@@ -194,7 +191,7 @@ serviceForm.onsubmit = async function(e) {
         price: parseFloat(servicePrice.value),
         paperSize: serviceCategory.value === 'Printing' ? servicePaperSize.value : ''
     };
-    await addDoc(collection(window.db, "services"), newService);
+    await window.db.collection("services").add(newService);
     await loadServices();
     serviceForm.reset();
     servicePaperSize.style.display = 'none';
@@ -223,7 +220,7 @@ document.getElementById('editServiceForm').onsubmit = async function(e) {
         price: parseFloat(document.getElementById('editServicePrice').value),
         paperSize: s.category === 'Printing' ? s.paperSize : ''
     };
-    await updateDoc(doc(window.db, "services", s.id), updatedService);
+    await window.db.collection("services").doc(s.id).set(updatedService);
     await loadServices();
     document.getElementById('editServiceModal').classList.add('hidden');
     updateSaleServiceDropdown(saleCategory.value, saleService);
@@ -231,7 +228,7 @@ document.getElementById('editServiceForm').onsubmit = async function(e) {
 window.deleteService = async function(i) {
     if (confirm('Delete this service?')) {
         const s = services[i];
-        await deleteDoc(doc(window.db, "services", s.id));
+        await window.db.collection("services").doc(s.id).delete();
         await loadServices();
         updateSaleServiceDropdown(saleCategory.value, saleService);
     }
@@ -327,7 +324,7 @@ submitSalesForCustomerBtn.onclick = async function() {
         return;
     }
     for (const sale of pendingSales) {
-        await addDoc(collection(window.db, "sales"), sale);
+        await window.db.collection("sales").add(sale);
     }
     pendingSales = [];
     updatePendingSalesTable();
@@ -368,7 +365,7 @@ function renderSales() {
 window.deleteSale = async function(i) {
     if (confirm('Delete this sale?')) {
         const s = sales[i];
-        await deleteDoc(doc(window.db, "sales", s.id));
+        await window.db.collection("sales").doc(s.id).delete();
         await loadSales();
         renderDashboard();
         updateDeductionBalance();
@@ -376,7 +373,7 @@ window.deleteSale = async function(i) {
 };
 window.toggleSalePaid = async function(i) {
     const s = sales[i];
-    await updateDoc(doc(window.db, "sales", s.id), { paid: !s.paid });
+    await window.db.collection("sales").doc(s.id).update({ paid: !s.paid });
     await loadSales();
 };
 
@@ -403,7 +400,7 @@ deductionForm.onsubmit = async function(e) {
         desc: deductionDesc.value.trim(),
         amount: amount
     };
-    await addDoc(collection(window.db, "deductions"), deduction);
+    await window.db.collection("deductions").add(deduction);
     await loadDeductions();
     deductionForm.reset();
 };
@@ -424,21 +421,18 @@ if (resetDataBtn) {
     resetDataBtn.onclick = async function() {
         if (confirm('Are you sure you want to delete ALL data? This cannot be undone.')) {
             // This will delete all data from Firestore
-            const servicesRef = collection(window.db, "services");
-            const salesRef = collection(window.db, "sales");
-            const deductionsRef = collection(window.db, "deductions");
-
-            await deleteDoc(doc(window.db, "services", "all")); // Assuming a dummy document to delete all services
-            await deleteDoc(doc(window.db, "sales", "all")); // Assuming a dummy document to delete all sales
-            await deleteDoc(doc(window.db, "deductions", "all")); // Assuming a dummy document to delete all deductions
-
-            // Re-initialize Firestore collections
-            await addDoc(servicesRef, { name: "Printing", category: "Printing", unit: "Sheet", price: 100, paperSize: "A4" });
-            await addDoc(servicesRef, { name: "Layout", category: "Layout", unit: "Page", price: 50 });
-            await addDoc(salesRef, { date: new Date().toISOString().split('T')[0], customer: "Test Customer", service: "Printing", quantity: 1, unitPrice: 100, total: 100, paid: true });
-            await addDoc(salesRef, { date: new Date().toISOString().split('T')[0], customer: "Test Customer", service: "Layout", quantity: 1, unitPrice: 50, total: 50, paid: false });
-            await addDoc(deductionsRef, { date: new Date().toISOString().split('T')[0], desc: "Test Deduction", amount: 10 });
-
+            const servicesSnapshot = await window.db.collection("services").get();
+            for (const doc of servicesSnapshot.docs) {
+                await window.db.collection("services").doc(doc.id).delete();
+            }
+            const salesSnapshot = await window.db.collection("sales").get();
+            for (const doc of salesSnapshot.docs) {
+                await window.db.collection("sales").doc(doc.id).delete();
+            }
+            const deductionsSnapshot = await window.db.collection("deductions").get();
+            for (const doc of deductionsSnapshot.docs) {
+                await window.db.collection("deductions").doc(doc.id).delete();
+            }
             location.reload();
         }
     };
