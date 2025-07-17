@@ -264,7 +264,7 @@ function updatePendingSalesTable() {
     pendingSales.forEach((s, i) => {
         const rowTotal = s.quantity * s.unitPrice;
         total += rowTotal;
-        pendingSalesTable.innerHTML += `<tr>
+        pendingSalesTable.innerHTML += `<tr class="text-xs sm:text-sm">
             <td class="px-4 py-2">${s.category}</td>
             <td class="px-4 py-2">${s.service}</td>
             <td class="px-4 py-2">${s.quantity}</td>
@@ -323,7 +323,7 @@ submitSalesForCustomerBtn.onclick = function() {
 function renderSales() {
     salesTable.innerHTML = '';
     sales.forEach((s, i) => {
-        salesTable.innerHTML += `<tr>
+        salesTable.innerHTML += `<tr class="text-xs sm:text-sm">
             <td class="px-4 py-2">${s.date}</td>
             <td class="px-4 py-2">${s.customer}</td>
             <td class="px-4 py-2">${s.service}</td>
