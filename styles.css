@@ -238,6 +238,26 @@ input[type="checkbox"].peer + div {
     color: #fff;
 }
 
+.dashboard-metrics {
+  display: flex;
+  gap: 1rem;
+  align-items: stretch;
+}
+@media (max-width: 640px) {
+  .dashboard-metrics {
+    display: block;
+  }
+}
+.metric-card {
+  width: 100%;
+  min-width: 0;
+  flex: 1 1 0%;
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
 @media (max-width: 640px) {
   .container, .tab-content {
     padding: 0.5rem !important;
@@ -360,10 +380,6 @@ input[type="checkbox"].peer + div {
 .scrollable-table-container, .overflow-x-auto {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-}
-
-.metric-card {
-  min-width: 0;
 }
 
 table, thead, tbody, th, td, tr {
