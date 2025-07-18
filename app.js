@@ -197,7 +197,7 @@ async function loadServices() {
     renderDashboard();
 }
 async function loadSales() {
-    const querySnapshot = await window.db.collection("sales").get();
+    const querySnapshot = await window.db.collection("sales").orderBy("date").get();
     sales = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     renderSales();
     renderDashboard();
