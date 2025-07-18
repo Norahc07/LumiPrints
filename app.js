@@ -191,7 +191,13 @@ function renderServices() {
 }
 // --- Firestore Sync Functions ---
 async function loadServices() {
-    const querySnapshot = await window.db.collection("services").get();
+    let querySnapshot;
+    try {
+        querySnapshot = await window.db.collection("services").orderBy("order").get();
+    } catch (e) {
+        // If 'order' field does not exist, fallback to default
+        querySnapshot = await window.db.collection("services").get();
+    }
     services = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     renderServices();
     renderDashboard();
