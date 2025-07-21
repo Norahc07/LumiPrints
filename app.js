@@ -191,7 +191,8 @@ function renderServices() {
 }
 // --- Firestore Sync Functions ---
 async function loadServices() {
-    const querySnapshot = await window.db.collection("services").orderBy("order").get();
+    // Always fetch services sorted alphabetically by name
+    const querySnapshot = await window.db.collection("services").orderBy("name").get();
     services = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     renderServices();
     renderDashboard();
@@ -242,14 +243,15 @@ document.getElementById('editServiceForm').onsubmit = async function(e) {
     e.preventDefault();
     const i = +document.getElementById('editServiceIndex').value;
     const s = services[i];
+    // Always update all fields, and preserve paperSize if category is Printing
     const updatedService = {
         name: document.getElementById('editServiceName').value.trim(),
         category: document.getElementById('editServiceCategory').value,
         unit: document.getElementById('editServiceUnit').value,
         price: parseFloat(document.getElementById('editServicePrice').value),
-        paperSize: s.category === 'Printing' ? s.paperSize : ''
+        paperSize: (document.getElementById('editServiceCategory').value === 'Printing') ? (s.paperSize || '') : ''
     };
-    await window.db.collection("services").doc(s.id).set(updatedService);
+    await window.db.collection("services").doc(s.id).update(updatedService);
     await loadServices();
     document.getElementById('editServiceModal').classList.add('hidden');
     updateSaleServiceDropdown(saleCategory.value, saleService);
