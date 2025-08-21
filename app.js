@@ -152,7 +152,14 @@ function renderServices() {
     console.log('renderServices called', services);
     printingServicesTable.innerHTML = '';
     layoutServicesTable.innerHTML = '';
-    services.forEach((s, i) => {
+    
+    // Sort services alphabetically by name
+    const sortedServices = [...services].sort((a, b) => a.name.localeCompare(b.name));
+    
+    sortedServices.forEach((s, i) => {
+        // Find the original index in the services array for proper editing
+        const originalIndex = services.findIndex(service => service.id === s.id);
+        
         let row = '';
         if (s.category === 'Printing') {
             row = `
@@ -163,8 +170,8 @@ function renderServices() {
                     <td class="px-4 py-2">${s.paperSize || ''}</td>
                     <td class="px-4 py-2">
                         <div class='service-actions'>
-                            <button onclick="openEditServiceModal(${i})" class="text-blue-600 material-icons align-middle" title="Edit">edit</button>
-                            <button onclick="deleteService(${i})" class="text-red-600 material-icons align-middle" title="Delete">delete</button>
+                            <button onclick="openEditServiceModal(${originalIndex})" class="text-blue-600 material-icons align-middle" title="Edit">edit</button>
+                            <button onclick="deleteService(${originalIndex})" class="text-red-600 material-icons align-middle" title="Delete">delete</button>
                         </div>
                     </td>
                 </tr>
@@ -178,8 +185,8 @@ function renderServices() {
                     <td class="px-4 py-2">PHP ${parseFloat(s.price).toFixed(2)}</td>
                     <td class="px-4 py-2">
                         <div class='service-actions'>
-                            <button onclick="openEditServiceModal(${i})" class="text-blue-600 material-icons align-middle" title="Edit">edit</button>
-                            <button onclick="deleteService(${i})" class="text-red-600 material-icons align-middle" title="Delete">delete</button>
+                            <button onclick="openEditServiceModal(${originalIndex})" class="text-blue-600 material-icons align-middle" title="Edit">edit</button>
+                            <button onclick="deleteService(${originalIndex})" class="text-red-600 material-icons align-middle" title="Delete">delete</button>
                         </div>
                     </td>
                 </tr>
@@ -198,8 +205,14 @@ async function loadServices() {
         console.log('Services query result:', querySnapshot.docs.length, 'documents');
         services = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         console.log('Services loaded:', services);
+        
+        // Force re-render
         renderServices();
         renderDashboard();
+        
+        // Log table contents for debugging
+        console.log('Printing services table HTML:', printingServicesTable.innerHTML);
+        console.log('Layout services table HTML:', layoutServicesTable.innerHTML);
     } catch (error) {
         console.error('Error loading services:', error);
         alert('Error loading services: ' + error.message);
@@ -209,7 +222,7 @@ async function loadServices() {
 async function loadSales() {
     try {
         console.log('Loading sales from Firestore...');
-        const querySnapshot = await window.db.collection("sales").orderBy("date").get();
+        const querySnapshot = await window.db.collection("sales").orderBy("date", "desc").get();
         console.log('Sales query result:', querySnapshot.docs.length, 'documents');
         sales = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         console.log('Sales loaded:', sales);
@@ -224,7 +237,7 @@ async function loadSales() {
 async function loadDeductions() {
     try {
         console.log('Loading deductions from Firestore...');
-        const querySnapshot = await window.db.collection("deductions").get();
+        const querySnapshot = await window.db.collection("deductions").orderBy("date", "desc").get();
         console.log('Deductions query result:', querySnapshot.docs.length, 'documents');
         deductions = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         console.log('Deductions loaded:', deductions);
@@ -260,6 +273,20 @@ window.openEditServiceModal = function(i) {
     document.getElementById('editServiceCategory').value = s.category;
     document.getElementById('editServiceUnit').value = s.unit;
     document.getElementById('editServicePrice').value = s.price;
+    
+    // Handle paperSize field visibility and value
+    const editServicePaperSizeContainer = document.getElementById('editServicePaperSizeContainer');
+    const editServicePaperSize = document.getElementById('editServicePaperSize');
+    if (s.category === 'Printing') {
+        editServicePaperSizeContainer.style.display = '';
+        editServicePaperSize.required = true;
+        editServicePaperSize.value = s.paperSize || '';
+    } else {
+        editServicePaperSizeContainer.style.display = 'none';
+        editServicePaperSize.required = false;
+        editServicePaperSize.value = '';
+    }
+    
     document.getElementById('editServiceModal').classList.remove('hidden');
 };
 document.getElementById('closeEditServiceModal').onclick = function() {
@@ -269,18 +296,29 @@ document.getElementById('editServiceForm').onsubmit = async function(e) {
     e.preventDefault();
     const i = +document.getElementById('editServiceIndex').value;
     const s = services[i];
-    // Always update all fields, and preserve paperSize if category is Printing
+    
+    // Get the paperSize value if category is Printing
+    const editServicePaperSize = document.getElementById('editServicePaperSize');
+    const paperSize = (document.getElementById('editServiceCategory').value === 'Printing') ? 
+        (editServicePaperSize.value || '') : '';
+    
     const updatedService = {
         name: document.getElementById('editServiceName').value.trim(),
         category: document.getElementById('editServiceCategory').value,
         unit: document.getElementById('editServiceUnit').value,
         price: parseFloat(document.getElementById('editServicePrice').value),
-        paperSize: (document.getElementById('editServiceCategory').value === 'Printing') ? (s.paperSize || '') : ''
+        paperSize: paperSize
     };
-    await window.db.collection("services").doc(s.id).update(updatedService);
-    await loadServices();
-    document.getElementById('editServiceModal').classList.add('hidden');
-    updateSaleServiceDropdown(saleCategory.value, saleService);
+    
+    try {
+        await window.db.collection("services").doc(s.id).update(updatedService);
+        await loadServices();
+        document.getElementById('editServiceModal').classList.add('hidden');
+        updateSaleServiceDropdown(saleCategory.value, saleService);
+    } catch (error) {
+        console.error('Error updating service:', error);
+        alert('Error updating service: ' + error.message);
+    }
 };
 window.deleteService = async function(i) {
     if (confirm('Delete this service?')) {
@@ -503,6 +541,41 @@ if (refreshDataBtn) {
     };
 }
 
+// --- Add Sample Deductions Button ---
+const addSampleDeductionsBtn = document.getElementById('addSampleDeductionsBtn');
+if (addSampleDeductionsBtn) {
+    addSampleDeductionsBtn.onclick = async function() {
+        if (confirm('Add sample deduction data to Firestore?')) {
+            try {
+                await addSampleDeductions();
+                alert('Sample deductions added successfully!');
+            } catch (error) {
+                console.error('Error adding sample deductions:', error);
+                alert('Error adding sample deductions: ' + error.message);
+            }
+        }
+    };
+}
+
+// --- Add Sample Deductions (for testing) ---
+async function addSampleDeductions() {
+    try {
+        const sampleDeductions = [
+            { date: "2025-06-29", desc: "NANAY", amount: 52 },
+            { date: "2025-07-02", desc: "bond paper a4", amount: 198 },
+            { date: "2025-07-02", desc: "photo paper", amount: 118 }
+        ];
+        
+        for (const deduction of sampleDeductions) {
+            await window.db.collection("deductions").add(deduction);
+        }
+        console.log('Sample deductions added successfully');
+        await loadDeductions();
+    } catch (error) {
+        console.error('Error adding sample deductions:', error);
+    }
+}
+
 // --- Initialization ---
 async function init() {
     try {
@@ -534,14 +607,33 @@ async function init() {
         updateSaleServiceDropdown('', saleService);
         
         console.log('App initialization complete');
+        
+        // Uncomment the line below to add sample deductions (only run once)
+        // await addSampleDeductions();
     } catch (error) {
         console.error('Error during initialization:', error);
         alert('Error initializing app: ' + error.message + '\nPlease check your internet connection and refresh the page.');
     }
 }
 
-// Wait for DOM and Firebase to be ready
+// Add event listener for edit service category changes
 document.addEventListener('DOMContentLoaded', function() {
+    const editServiceCategory = document.getElementById('editServiceCategory');
+    if (editServiceCategory) {
+        editServiceCategory.addEventListener('change', function() {
+            const editServicePaperSizeContainer = document.getElementById('editServicePaperSizeContainer');
+            const editServicePaperSize = document.getElementById('editServicePaperSize');
+            if (this.value === 'Printing') {
+                editServicePaperSizeContainer.style.display = '';
+                editServicePaperSize.required = true;
+            } else {
+                editServicePaperSizeContainer.style.display = 'none';
+                editServicePaperSize.required = false;
+                editServicePaperSize.value = '';
+            }
+        });
+    }
+    
     // Small delay to ensure Firebase is initialized
     setTimeout(init, 100);
 });
