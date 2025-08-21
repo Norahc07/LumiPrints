@@ -215,10 +215,14 @@ async function loadServices() {
         console.log('Layout services table HTML:', layoutServicesTable.innerHTML);
     } catch (error) {
         console.error('Error loading services:', error);
-        alert('Error loading services: ' + error.message);
+        if (error.code === 'permission-denied') {
+            alert('Firebase permission error: Please check your Firestore security rules. The app needs read/write access to the services collection.');
+        } else {
+            alert('Error loading services: ' + error.message);
+        }
     }
 }
-
+``
 async function loadSales() {
     try {
         console.log('Loading sales from Firestore...');
@@ -230,7 +234,11 @@ async function loadSales() {
         renderDashboard();
     } catch (error) {
         console.error('Error loading sales:', error);
-        alert('Error loading sales: ' + error.message);
+        if (error.code === 'permission-denied') {
+            alert('Firebase permission error: Please check your Firestore security rules. The app needs read/write access to the sales collection.');
+        } else {
+            alert('Error loading sales: ' + error.message);
+        }
     }
 }
 
@@ -246,7 +254,11 @@ async function loadDeductions() {
         updateDeductionBalance();
     } catch (error) {
         console.error('Error loading deductions:', error);
-        alert('Error loading deductions: ' + error.message);
+        if (error.code === 'permission-denied') {
+            alert('Firebase permission error: Please check your Firestore security rules. The app needs read/write access to the deductions collection.');
+        } else {
+            alert('Error loading deductions: ' + error.message);
+        }
     }
 }
 
@@ -589,8 +601,13 @@ async function init() {
         
         // Test Firebase connection
         console.log('Testing Firebase connection...');
-        await window.db.collection("test").limit(1).get();
-        console.log('Firebase connection successful');
+        try {
+            await window.db.collection("test").limit(1).get();
+            console.log('Firebase connection successful');
+        } catch (error) {
+            console.error('Firebase connection test failed:', error);
+            // Continue anyway - the real test will be when we try to load data
+        }
         
         // Load all data
         await loadServices();
