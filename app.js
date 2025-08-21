@@ -191,24 +191,50 @@ function renderServices() {
 }
 // --- Firestore Sync Functions ---
 async function loadServices() {
-    // Always fetch services sorted alphabetically by name
-    const querySnapshot = await window.db.collection("services").orderBy("name").get();
-    services = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    renderServices();
-    renderDashboard();
+    try {
+        console.log('Loading services from Firestore...');
+        // Always fetch services sorted alphabetically by name
+        const querySnapshot = await window.db.collection("services").orderBy("name").get();
+        console.log('Services query result:', querySnapshot.docs.length, 'documents');
+        services = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        console.log('Services loaded:', services);
+        renderServices();
+        renderDashboard();
+    } catch (error) {
+        console.error('Error loading services:', error);
+        alert('Error loading services: ' + error.message);
+    }
 }
+
 async function loadSales() {
-    const querySnapshot = await window.db.collection("sales").orderBy("date").get();
-    sales = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    renderSales();
-    renderDashboard();
+    try {
+        console.log('Loading sales from Firestore...');
+        const querySnapshot = await window.db.collection("sales").orderBy("date").get();
+        console.log('Sales query result:', querySnapshot.docs.length, 'documents');
+        sales = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        console.log('Sales loaded:', sales);
+        renderSales();
+        renderDashboard();
+    } catch (error) {
+        console.error('Error loading sales:', error);
+        alert('Error loading sales: ' + error.message);
+    }
 }
+
 async function loadDeductions() {
-    const querySnapshot = await window.db.collection("deductions").get();
-    deductions = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    renderDeductions();
-    renderDashboard();
-    updateDeductionBalance();
+    try {
+        console.log('Loading deductions from Firestore...');
+        const querySnapshot = await window.db.collection("deductions").get();
+        console.log('Deductions query result:', querySnapshot.docs.length, 'documents');
+        deductions = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        console.log('Deductions loaded:', deductions);
+        renderDeductions();
+        renderDashboard();
+        updateDeductionBalance();
+    } catch (error) {
+        console.error('Error loading deductions:', error);
+        alert('Error loading deductions: ' + error.message);
+    }
 }
 
 // --- Services CRUD ---
@@ -460,18 +486,63 @@ if (resetDataBtn) {
     };
 }
 
+// --- Refresh Data Button ---
+const refreshDataBtn = document.getElementById('refreshDataBtn');
+if (refreshDataBtn) {
+    refreshDataBtn.onclick = async function() {
+        try {
+            console.log('Manual refresh triggered...');
+            await loadServices();
+            await loadSales();
+            await loadDeductions();
+            alert('Data refreshed successfully!');
+        } catch (error) {
+            console.error('Error refreshing data:', error);
+            alert('Error refreshing data: ' + error.message);
+        }
+    };
+}
+
 // --- Initialization ---
 async function init() {
-    await loadServices();
-    await loadSales();
-    await loadDeductions();
-    updatePendingSalesTable();
-    updateDeductionBalance();
-    const today = new Date().toISOString().split('T')[0];
-    saleDate.value = today;
-    deductionDate.value = today;
-    saleCategory.value = '';
-    updateSaleServiceDropdown('', saleService);
+    try {
+        console.log('Initializing app...');
+        console.log('Firebase db object:', window.db);
+        
+        // Check if Firebase is properly initialized
+        if (!window.db) {
+            throw new Error('Firebase is not initialized. Please check your internet connection and refresh the page.');
+        }
+        
+        // Test Firebase connection
+        console.log('Testing Firebase connection...');
+        await window.db.collection("test").limit(1).get();
+        console.log('Firebase connection successful');
+        
+        // Load all data
+        await loadServices();
+        await loadSales();
+        await loadDeductions();
+        
+        // Initialize UI
+        updatePendingSalesTable();
+        updateDeductionBalance();
+        const today = new Date().toISOString().split('T')[0];
+        saleDate.value = today;
+        deductionDate.value = today;
+        saleCategory.value = '';
+        updateSaleServiceDropdown('', saleService);
+        
+        console.log('App initialization complete');
+    } catch (error) {
+        console.error('Error during initialization:', error);
+        alert('Error initializing app: ' + error.message + '\nPlease check your internet connection and refresh the page.');
+    }
 }
-window.onload = init;
+
+// Wait for DOM and Firebase to be ready
+document.addEventListener('DOMContentLoaded', function() {
+    // Small delay to ensure Firebase is initialized
+    setTimeout(init, 100);
+});
 
