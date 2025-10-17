@@ -405,6 +405,35 @@ input[type="checkbox"].peer + div {
     max-width: 100vw;
     border-radius: 0.75rem;
   }
+  
+  /* Services table container specific mobile styles */
+  .services-table-container {
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+    max-height: 65vh;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  
+  .services-table-container::-webkit-scrollbar {
+    height: 8px;
+  }
+  
+  .services-table-container::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+  }
+  
+  .services-table-container::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+  }
+  
+  .services-table-container::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
   .tab-content {
     overflow-y: auto !important;
     max-height: 80vh;
@@ -584,6 +613,61 @@ input[type="checkbox"].peer + div {
     table-layout: auto;
   }
   
+  /* Services table mobile improvements */
+  .services-table {
+    min-width: 600px !important;
+    table-layout: auto !important;
+  }
+  
+  .services-table .col-name { 
+    width: 200px !important; 
+    min-width: 200px !important; 
+  }
+  .services-table .col-unit { 
+    width: 120px !important; 
+    min-width: 120px !important; 
+  }
+  .services-table .col-price { 
+    width: 100px !important; 
+    min-width: 100px !important; 
+  }
+  .services-table .col-paper { 
+    width: 120px !important; 
+    min-width: 120px !important; 
+  }
+  .services-table .col-actions { 
+    width: 100px !important; 
+    min-width: 100px !important; 
+  }
+  
+  .services-table td, .services-table th {
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
+    word-wrap: normal !important;
+    hyphens: none !important;
+    padding: 0.75rem 0.5rem !important;
+    font-size: 0.9rem !important;
+  }
+  
+  .services-table th {
+    background: linear-gradient(180deg, #f8fafc, #f1f5f9) !important;
+    color: #1e293b !important;
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.025em !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 10 !important;
+  }
+  
+  .services-table td {
+    color: #374151 !important;
+    font-weight: 400 !important;
+    font-size: 0.9rem !important;
+  }
+  
   /* Better mobile table cell handling */
   td, th {
     max-width: none;
@@ -750,18 +834,22 @@ tbody tr:hover td { background: #eff6ff; }
 td { line-height: 1.3; }
 
 /* Services tab: ensure columns fit within half-width cards */
-.services-table { table-layout: fixed; }
-.services-table .col-name { width: 32%; }
-.services-table .col-unit { width: 15%; }
-.services-table .col-price { width: 17%; }
-.services-table .col-paper { width: 17%; }
-.services-table .col-actions { width: 19%; }
+.services-table { 
+  table-layout: auto; 
+  min-width: 600px; /* Ensure minimum width for proper display */
+}
+.services-table .col-name { width: 200px; min-width: 200px; }
+.services-table .col-unit { width: 120px; min-width: 120px; }
+.services-table .col-price { width: 100px; min-width: 100px; }
+.services-table .col-paper { width: 120px; min-width: 120px; }
+.services-table .col-actions { width: 100px; min-width: 100px; }
 .services-table td, .services-table th { 
-  white-space: normal; 
+  white-space: nowrap; 
   overflow: visible; 
   text-overflow: unset; 
-  word-wrap: break-word;
-  hyphens: auto;
+  word-wrap: normal;
+  hyphens: none;
+  padding: 0.75rem 0.5rem;
 }
 
 /* Keep space while hiding (for Paper Size slot) */
