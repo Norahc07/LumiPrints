@@ -12,7 +12,22 @@
     <link rel="icon" type="image/png" href="LogoTitile.png">
     <link rel="manifest" href="manifest.json">
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="min-h-screen" id="appRoot">
+    <!-- App Bar -->
+    <header class="app-bar">
+        <div class="mx-auto max-w-5xl w-full px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <img src="lumiprintsLogo.png" alt="LumiPrints Logo" style="width:36px;height:36px;border-radius:8px" />
+                <span class="app-title font-semibold">LumiPrints • Business Log</span>
+            </div>
+            <div class="hidden md:flex items-center gap-2">
+                <button class="tab-btn" data-tab="dashboard">Dashboard</button>
+                <button class="tab-btn" data-tab="sales">Sales</button>
+                <button class="tab-btn" data-tab="services">Services</button>
+                <button class="tab-btn" data-tab="deductions">Deductions</button>
+            </div>
+        </div>
+    </header>
     <!-- Loading Overlay -->
     <div id="loadingOverlay" class="fixed inset-0 bg-gray-200 bg-opacity-75 flex items-center justify-center z-50 hidden">
         <div class="flex flex-col items-center">
@@ -20,15 +35,40 @@
             <p class="mt-4 text-lg text-gray-700">Loading...</p>
         </div>
     </div>
-    <!-- Custom Alert Modal -->
-    <div id="customAlertModal" class="modal hidden">
-        <div class="modal-content">
-            <span class="close-button" id="closeAlertButton">&times;</span>
-            <p id="customAlertMessage" class="text-lg text-gray-800"></p>
-            <button id="okAlertButton" class="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200">OK</button>
+    <!-- Modern Alert Modal -->
+    <div id="modernAlertModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="modern-alert-container">
+            <div class="modern-alert-icon">
+                <span id="alertIcon" class="material-icons"></span>
+            </div>
+            <div class="modern-alert-content">
+                <h3 id="alertTitle" class="modern-alert-title"></h3>
+                <p id="alertMessage" class="modern-alert-message"></p>
+            </div>
+            <div class="modern-alert-actions">
+                <button id="alertOkButton" class="modern-alert-btn modern-alert-btn-primary">OK</button>
+            </div>
         </div>
     </div>
-    <div class="container mx-auto bg-white p-4 sm:p-6 md:p-10 rounded-2xl shadow-2xl mt-4 mb-8 max-w-5xl w-full">
+    
+    <!-- Modern Confirmation Modal -->
+    <div id="modernConfirmModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="modern-alert-container">
+            <div class="modern-alert-icon">
+                <span id="confirmIcon" class="material-icons"></span>
+            </div>
+            <div class="modern-alert-content">
+                <h3 id="confirmTitle" class="modern-alert-title"></h3>
+                <p id="confirmMessage" class="modern-alert-message"></p>
+            </div>
+            <div class="modern-alert-actions">
+                <button id="confirmCancelButton" class="modern-alert-btn modern-alert-btn-secondary">Cancel</button>
+                <button id="confirmDeleteButton" class="modern-alert-btn modern-alert-btn-danger">Delete</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container mx-auto glass-container p-4 sm:p-6 md:p-10 rounded-2xl mt-4 mb-8 w-full fade-in">
         <div class="flex flex-col items-center mb-4">
             <img src="lumiprintsLogo.png" alt="LumiPrints Logo" class="mb-4" style="width: 180px; max-width: 90vw;" />
             <h1 class="text-4xl font-extrabold text-center text-gray-800 mb-2 tracking-tight dashboard-heading">Business Log & Profit Tracker</h1>
@@ -84,6 +124,7 @@
                 <div>
                     <h2 class="text-xl font-semibold mb-2 text-blue-700 flex items-center"><span class="material-icons mr-2">print</span>Printing Services</h2>
                     <div class="overflow-x-auto rounded-lg shadow w-full">
+                        <div class="table-rows-10">
                         <table class="min-w-full text-xs sm:text-sm divide-y divide-gray-200 rounded-lg shadow-sm">
                             <thead class="bg-gray-50 sticky top-0 z-10">
                                 <tr>
@@ -95,11 +136,13 @@
                             </thead>
                             <tbody id="dashboardPrintingTable" class="bg-white divide-y divide-gray-200"></tbody>
                         </table>
+                        </div>
                     </div>
                 </div>
                 <div>
                     <h2 class="text-xl font-semibold mb-2 text-pink-700 flex items-center"><span class="material-icons mr-2">brush</span>Layout Services</h2>
                     <div class="overflow-x-auto rounded-lg shadow w-full">
+                        <div class="table-rows-10">
                         <table class="min-w-full text-xs sm:text-sm divide-y divide-gray-200 rounded-lg shadow-sm">
                             <thead class="bg-gray-50 sticky top-0 z-10">
                                 <tr>
@@ -113,36 +156,37 @@
                     </div>
                 </div>
             </div>
-            <button id="resetDataBtn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700 transition mb-4">
+            </div>
+            <button id="resetDataBtn" class="btn-danger px-4 py-2 rounded transition mb-4">
                 Reset All Data
             </button>
-            <button id="refreshDataBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 transition mb-4 ml-2">
+            <button id="refreshDataBtn" class="btn-primary px-4 py-2 rounded transition mb-4 ml-2">
                 Refresh Data
             </button>
-            <button id="addSampleDeductionsBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700 transition mb-4 ml-2">
+            <button id="addSampleDeductionsBtn" class="btn-success px-4 py-2 rounded transition mb-4 ml-2">
                 Add Sample Deductions
             </button>
         </div>
         <!-- Sales Log -->
         <div id="tab-sales" class="tab-content hidden">
             <h2 class="text-2xl font-semibold mb-4 flex items-center text-green-700"><span class="material-icons mr-2">receipt_long</span>Sales Log</h2>
-            <form id="salesForm" class="bg-white rounded-xl shadow p-4 mb-6 grid grid-cols-1 md:grid-cols-6 gap-4">
-                <input type="date" id="saleDate" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-green-400" />
-                <input type="text" id="saleCustomer" placeholder="Customer Name" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-green-400" />
-                <select id="saleCategory" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-green-400">
+            <form id="salesForm" class="bg-white rounded-xl shadow p-4 mb-6 grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                <input type="date" id="saleDate" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-green-400 md:col-span-2" />
+                <input type="text" id="saleCustomer" placeholder="Customer Name" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-green-400 md:col-span-2" />
+                <select id="saleCategory" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-green-400 md:col-span-2">
                     <option value="" selected disabled>Select Service</option>
                     <option value="Printing">Printing</option>
                     <option value="Layout">Layout</option>
                 </select>
-                <select id="saleService" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-green-400" disabled>
+                <select id="saleService" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-green-400 md:col-span-2" disabled>
                     <option value="" selected disabled>Services</option>
                 </select>
-                <input type="number" id="saleQuantity" min="1" value="1" required placeholder="e.g., 10" class="border rounded px-2 py-1 focus:ring-2 focus:ring-green-400" />
-                <input type="number" id="saleUnitPrice" min="0" step="0.01" placeholder="Unit Price" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-green-400" readonly />
-                <!-- Removed Add Service button from Sales Log -->
+                <input type="number" id="saleQuantity" min="1" value="1" required placeholder="Qty" class="border rounded px-2 py-1 focus:ring-2 focus:ring-green-400 md:col-span-1" />
+                <input type="number" id="saleUnitPrice" min="0" step="0.01" placeholder="Price" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-green-400 md:col-span-1" readonly />
+                <button type="button" id="submitSalesForCustomer" class="bg-green-600 text-white rounded px-4 py-2 hover:bg-green-700 transition md:col-span-2 whitespace-nowrap">Submit Sale</button>
             </form>
-            <!-- List of services for this customer/date -->
-            <div class="mb-4 overflow-x-auto w-full">
+            <!-- Pending Sales Table -->
+            <div id="pendingSection" class="mb-4 overflow-x-auto w-full hidden">
                 <table class="min-w-full text-xs sm:text-sm divide-y divide-gray-200 rounded-lg shadow-sm">
                     <thead>
                         <tr>
@@ -157,6 +201,16 @@
                     <tbody id="pendingSalesTable"></tbody>
                     <tfoot>
                         <tr>
+                            <td colspan="4" class="text-right font-bold px-4 py-2">Subtotal</td>
+                            <td id="pendingSalesSubtotal" class="font-bold px-4 py-2">PHP 0.00</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="text-right font-bold px-4 py-2">Additional Expense</td>
+                            <td id="pendingSalesAdditional" class="font-bold px-4 py-2">PHP 0.00</td>
+                            <td></td>
+                        </tr>
+                        <tr class="bg-gray-100">
                             <td colspan="4" class="text-right font-bold px-4 py-2">Total</td>
                             <td id="pendingSalesTotal" class="font-bold px-4 py-2">PHP 0.00</td>
                             <td></td>
@@ -164,8 +218,21 @@
                     </tfoot>
                 </table>
             </div>
-            <button type="button" id="submitSalesForCustomer" class="bg-green-600 text-white rounded px-4 py-2 mb-6 hover:bg-green-700 transition">Submit Sale</button>
+            
+            <!-- Additional Expense and Action Buttons -->
+            <div id="pendingActions" class="bg-white rounded-xl shadow p-4 mb-6 grid grid-cols-1 md:grid-cols-12 gap-3 items-end hidden">
+                <div class="md:col-span-3">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Additional Expense (Optional)</label>
+                    <input type="number" id="additionalExpense" min="0" step="0.01" placeholder="0.00" class="border rounded px-2 py-1 focus:ring-2 focus:ring-green-400 w-full" />
+                </div>
+                <div class="md:col-span-9 flex gap-2 justify-end">
+                    <button type="button" id="cancelSale" class="bg-red-600 text-white rounded px-6 py-2 hover:bg-red-700 transition whitespace-nowrap">Cancel Sale</button>
+                    <button type="button" id="completeSale" class="bg-green-600 text-white rounded px-6 py-2 hover:bg-green-700 transition whitespace-nowrap">Done</button>
+                </div>
+            </div>
+            <!-- Submit button moved to form row -->
             <div class="overflow-x-auto rounded-lg shadow w-full">
+                <div class="table-rows-15">
                 <table class="min-w-full text-xs sm:text-sm divide-y divide-gray-200 rounded-lg shadow-sm">
                     <thead class="bg-gray-50 sticky top-0 z-10">
                         <tr>
@@ -180,6 +247,7 @@
                     </thead>
                     <tbody id="salesTable" class="bg-white divide-y divide-gray-200"></tbody>
                 </table>
+                </div>
             </div>
             <!-- Edit Sales Modal -->
             <div id="editSalesModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
@@ -230,14 +298,16 @@
             <h2 class="text-2xl font-semibold mb-4 flex items-center text-blue-700">
                 <span class="material-icons mr-2">list_alt</span>Services Price List
             </h2>
-            <form id="serviceForm" class="bg-white rounded-xl shadow p-4 mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-                <input type="text" id="serviceName" placeholder="Service Name" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-blue-400" />
-                <select id="serviceCategory" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-blue-400">
+            <form id="serviceForm" class="bg-white rounded-xl shadow p-4 mb-6 grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                <input type="text" id="serviceName" placeholder="Service Name" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-blue-400 md:col-span-2" />
+                <input type="number" id="servicePrice" min="0" step="0.01" placeholder="Price" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-blue-400 md:col-span-2" />
+                <select id="serviceCategory" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-blue-400 md:col-span-2">
                     <option value="" selected disabled>Service Type</option>
                     <option value="Printing">Printing</option>
                     <option value="Layout">Layout</option>
                 </select>
-                <select id="serviceUnit" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-blue-400">
+                <select id="serviceUnit" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-blue-400 md:col-span-2">
+                    <option value="" selected disabled>Package Type</option>
                     <option value="per page">per page</option>
                     <option value="per set">per set</option>
                     <option value="per layout">per layout</option>
@@ -245,7 +315,7 @@
                     <option value="per project">per project</option>
                     <option value="per sq. ft.">per sq. ft.</option>
                 </select>
-                <select id="servicePaperSize" class="border rounded px-2 py-1 focus:ring-2 focus:ring-blue-400" style="display:none;">
+                <select id="servicePaperSize" class="border rounded px-2 py-1 focus:ring-2 focus:ring-blue-400 md:col-span-2" style="display: none;">
                     <option value="" selected disabled>Paper Size</option>
                     <option value="A4">A4</option>
                     <option value="Long">Long</option>
@@ -263,14 +333,20 @@
                     <option value="8.5x13">8.5x13</option>
                     <option value="Custom">Custom</option>
                 </select>
-                <input type="number" id="servicePrice" min="0" step="0.01" placeholder="Standard Price" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-blue-400" />
-                <button type="submit" class="col-span-1 md:col-span-4 bg-blue-600 text-white rounded px-4 py-2 mt-2 hover:bg-blue-700 transition">Add Service</button>
+                <button type="submit" class="bg-blue-600 text-white rounded px-6 py-2 hover:bg-blue-700 transition md:col-span-2 whitespace-nowrap">Add Service</button>
             </form>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
                     <h3 class="text-lg font-semibold mb-2 text-blue-600 flex items-center"><span class="material-icons mr-2">print</span>Printing Services</h3>
-                    <div class="overflow-x-auto rounded-lg shadow">
-                        <table class="min-w-full divide-y divide-gray-200 rounded-lg shadow-sm">
+                    <div class="overflow-x-auto table-rows-10 rounded-lg shadow">
+                        <table class="min-w-full divide-y divide-gray-200 rounded-lg shadow-sm services-table">
+                            <colgroup>
+                                <col class="col-name" />
+                                <col class="col-unit" />
+                                <col class="col-price" />
+                                <col class="col-paper" />
+                                <col class="col-actions" />
+                            </colgroup>
                             <thead class="bg-gray-50 sticky top-0 z-10">
                                 <tr>
                                     <th class="px-4 py-2">Service Name</th>
@@ -286,8 +362,14 @@
                 </div>
                 <div>
                     <h3 class="text-lg font-semibold mb-2 text-pink-600 flex items-center"><span class="material-icons mr-2">brush</span>Layout Services</h3>
-                    <div class="overflow-x-auto rounded-lg shadow">
-                        <table class="min-w-full divide-y divide-gray-200 rounded-lg shadow-sm">
+                    <div class="overflow-x-auto table-rows-10 rounded-lg shadow">
+                        <table class="min-w-full divide-y divide-gray-200 rounded-lg shadow-sm services-table">
+                            <colgroup>
+                                <col class="col-name" />
+                                <col class="col-unit" />
+                                <col class="col-price" />
+                                <col class="col-actions" />
+                            </colgroup>
                             <thead class="bg-gray-50 sticky top-0 z-10">
                                 <tr>
                                     <th class="px-4 py-2">Service Name</th>
@@ -369,11 +451,11 @@
                 <span class="font-semibold text-gray-700">Income Balance:</span>
                 <span id="deductionIncomeBalance" class="font-bold text-lg text-blue-700">PHP 0.00</span>
             </div>
-            <form id="deductionForm" class="bg-white rounded-xl shadow p-4 mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <input type="date" id="deductionDate" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-red-400" />
-                <input type="text" id="deductionDesc" placeholder="Description" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-red-400" />
-                <input type="number" id="deductionAmount" min="0" step="0.01" placeholder="Amount" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-red-400" />
-                <button type="submit" class="col-span-1 md:col-span-3 bg-red-600 text-white rounded px-4 py-2 mt-2 hover:bg-red-700 transition">Add Deduction</button>
+            <form id="deductionForm" class="bg-white rounded-xl shadow p-4 mb-6 grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                <input type="date" id="deductionDate" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-red-400 md:col-span-3" />
+                <input type="text" id="deductionDesc" placeholder="Description" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-red-400 md:col-span-5" />
+                <input type="number" id="deductionAmount" min="0" step="0.01" placeholder="Amount" required class="border rounded px-2 py-1 focus:ring-2 focus:ring-red-400 md:col-span-2" />
+                <button type="submit" class="bg-red-600 text-white rounded px-6 py-2 hover:bg-red-700 transition md:col-span-2 whitespace-nowrap">Add Deduction</button>
             </form>
             <div class="overflow-x-auto rounded-lg shadow">
                 <table class="min-w-full divide-y divide-gray-200 rounded-lg shadow-sm">
@@ -421,7 +503,8 @@
     <script src="app.js"></script>
     <script>
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('service-worker.js');
+        const swUrl = 'service-worker.js?v=' + (window.__SW_VERSION__ || Date.now());
+        navigator.serviceWorker.register(swUrl);
       }
     </script>
 </body>

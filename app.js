@@ -24,6 +24,8 @@ const saleQuantity = document.getElementById('saleQuantity');
 const saleUnitPrice = document.getElementById('saleUnitPrice');
 const pendingSalesTable = document.getElementById('pendingSalesTable');
 const pendingSalesTotal = document.getElementById('pendingSalesTotal');
+const pendingSection = document.getElementById('pendingSection');
+const pendingActions = document.getElementById('pendingActions');
 const submitSalesForCustomerBtn = document.getElementById('submitSalesForCustomer');
 const serviceForm = document.getElementById('serviceForm');
 const serviceName = document.getElementById('serviceName');
@@ -42,6 +44,77 @@ const salesTable = document.getElementById('salesTable');
 const resetDataBtn = document.getElementById('resetDataBtn');
 const servicePaperSize = document.getElementById('servicePaperSize');
 
+// --- Modern Alert System ---
+function showModernAlert(type, title, message, icon) {
+    const modal = document.getElementById('modernAlertModal');
+    const alertIcon = document.getElementById('alertIcon');
+    const alertTitle = document.getElementById('alertTitle');
+    const alertMessage = document.getElementById('alertMessage');
+    const iconContainer = document.querySelector('.modern-alert-icon');
+    
+    // Set icon and type
+    alertIcon.textContent = icon;
+    iconContainer.className = `modern-alert-icon ${type}`;
+    alertTitle.textContent = title;
+    alertMessage.textContent = message;
+    
+    // Show modal
+    modal.classList.remove('hidden');
+    
+    // Auto-hide after 3 seconds for success messages
+    if (type === 'success') {
+        setTimeout(() => {
+            hideModernAlert();
+        }, 3000);
+    }
+}
+
+function hideModernAlert() {
+    const modal = document.getElementById('modernAlertModal');
+    modal.classList.add('hidden');
+}
+
+// Alert button event listener
+document.getElementById('alertOkButton').addEventListener('click', hideModernAlert);
+
+// --- Modern Confirmation Modal System ---
+let confirmCallback = null;
+
+function showModernConfirm(type, title, message, icon, callback) {
+    const modal = document.getElementById('modernConfirmModal');
+    const confirmIcon = document.getElementById('confirmIcon');
+    const confirmTitle = document.getElementById('confirmTitle');
+    const confirmMessage = document.getElementById('confirmMessage');
+    const iconContainer = document.querySelector('#modernConfirmModal .modern-alert-icon');
+    
+    // Set icon and type
+    confirmIcon.textContent = icon;
+    iconContainer.className = `modern-alert-icon ${type}`;
+    confirmTitle.textContent = title;
+    confirmMessage.textContent = message;
+    
+    // Store callback
+    confirmCallback = callback;
+    
+    // Show modal
+    modal.classList.remove('hidden');
+}
+
+function hideModernConfirm() {
+    const modal = document.getElementById('modernConfirmModal');
+    modal.classList.add('hidden');
+    confirmCallback = null;
+}
+
+// Confirmation button event listeners
+document.getElementById('confirmCancelButton').addEventListener('click', hideModernConfirm);
+document.getElementById('confirmDeleteButton').addEventListener('click', function() {
+    if (confirmCallback) {
+        confirmCallback();
+    }
+    hideModernConfirm();
+});
+
 // --- Navigation Active State ---
 function setActiveNav(tab) {
   document.querySelectorAll('.bottom-nav .nav-btn').forEach(btn => btn.classList.remove('active'));
@@ -49,10 +122,23 @@ function setActiveNav(tab) {
   if (navBtn) navBtn.classList.add('active');
   // FAB logic removed (no longer needed)
 }
-// Patch all tab switches to call setActiveNav
+// Desktop header nav: switch tabs and sync active state
 tabBtns.forEach(btn => {
   btn.addEventListener('click', function() {
-    setActiveNav(this.dataset.tab);
+    const tab = this.dataset.tab;
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(tc => tc.classList.add('hidden'));
+    // Show selected tab
+    const showTab = document.getElementById('tab-' + tab);
+    if (showTab) showTab.classList.remove('hidden');
+    // Active styles for header buttons
+    tabBtns.forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    // Sync bottom nav
+    setActiveNav(tab);
+    // Optional re-renders
+    if (tab === 'dashboard') renderDashboard();
+    if (tab === 'deductions') updateDeductionBalance();
   });
 });
 // --- Bottom Nav Button Logic ---
@@ -80,6 +166,11 @@ window.addEventListener('DOMContentLoaded', function() {
     activeTab = visibleTab ? visibleTab.id.replace('tab-', '') : 'dashboard';
   }
   setActiveNav(activeTab);
+  // Reflect active to desktop header buttons
+  tabBtns.forEach(b => {
+    if (b.dataset.tab === activeTab) b.classList.add('active');
+    else b.classList.remove('active');
+  });
 });
 
 // --- Local Storage ---
@@ -277,6 +368,7 @@ serviceForm.onsubmit = async function(e) {
     serviceForm.reset();
     servicePaperSize.style.display = 'none';
     updateSaleServiceDropdown(saleCategory.value, saleService);
+    showModernAlert('success', 'Service Added!', 'New service has been added successfully.', 'add_circle');
 };
 window.openEditServiceModal = function(i) {
     const s = services[i];
@@ -333,12 +425,13 @@ document.getElementById('editServiceForm').onsubmit = async function(e) {
     }
 };
 window.deleteService = async function(i) {
-    if (confirm('Delete this service?')) {
-        const s = services[i];
+    const s = services[i];
+    showModernConfirm('error', 'Delete Service', `Are you sure you want to delete "${s.name}" service?`, 'delete', async function() {
         await window.db.collection("services").doc(s.id).delete();
         await loadServices();
         updateSaleServiceDropdown(saleCategory.value, saleService);
-    }
+        showModernAlert('success', 'Service Deleted', 'Service has been removed successfully.', 'delete');
+    });
 };
 
 // --- Sales Log: Add Multiple Services per Customer ---
@@ -358,10 +451,12 @@ function updateSaleServiceDropdown(category, dropdown, selectedService = "") {
 }
 serviceCategory.addEventListener('change', function() {
     if (serviceCategory.value === 'Printing') {
-        servicePaperSize.style.display = '';
+        servicePaperSize.style.display = 'block';
+        servicePaperSize.removeAttribute('aria-hidden');
         servicePaperSize.required = true;
     } else {
         servicePaperSize.style.display = 'none';
+        servicePaperSize.setAttribute('aria-hidden','true');
         servicePaperSize.required = false;
         servicePaperSize.value = '';
     }
@@ -409,39 +504,101 @@ function renderSales() {
     console.log('renderSales called', sales);
     salesTable.innerHTML = '';
     sales.forEach((s, i) => {
-        salesTable.innerHTML += `<tr class="text-xs sm:text-sm">
-            <td class="px-4 py-2">${s.date}</td>
-            <td class="px-4 py-2">${s.customer}</td>
-            <td class="px-4 py-2">${s.service}</td>
-            <td class="px-4 py-2">${s.quantity}</td>
-            <td class="px-4 py-2">PHP ${parseFloat(s.unitPrice).toFixed(2)}</td>
-            <td class="px-4 py-2">PHP ${parseFloat(s.total).toFixed(2)}</td>
-            <td class="px-4 py-2">
-                <label class="sales-toggle">
-                    <input type="checkbox" onchange="toggleSalePaid(${i})" ${s.paid ? 'checked' : ''}>
-                    <span class="sales-slider">
-                        <span class="checkmark material-icons">check</span>
-                        <span class="xmark material-icons">close</span>
+        if (s.isGrouped && s.services) {
+            // Render grouped sales with sub-rows
+            let groupedHtml = '';
+            
+            // Main row with customer info and total
+            groupedHtml += `<tr class="text-xs sm:text-sm bg-blue-50 border-l-4 border-blue-400">
+                <td class="px-4 py-2 font-semibold">${s.date}</td>
+                <td class="px-4 py-2 font-semibold">${s.customer}</td>
+                <td class="px-4 py-2 font-semibold">${s.services.length} service(s)</td>
+                <td class="px-4 py-2"></td>
+                <td class="px-4 py-2"></td>
+                <td class="px-4 py-2 font-bold text-lg">PHP ${parseFloat(s.total).toFixed(2)}</td>
+                <td class="px-4 py-2">
+                    <label class="sales-toggle">
+                        <input type="checkbox" onchange="toggleSalePaid(${i})" ${s.paid ? 'checked' : ''}>
+                        <span class="sales-slider">
+                            <span class="checkmark material-icons">check</span>
+                            <span class="xmark material-icons">close</span>
+                        </span>
+                    </label>
+                    <span class="ml-2 text-sm font-medium ${s.paid ? 'text-green-700' : 'text-gray-500'}">
+                        ${s.paid ? 'Paid' : 'Not Paid'}
                     </span>
-                </label>
-                <span class="ml-2 text-sm font-medium ${s.paid ? 'text-green-700' : 'text-gray-500'}">
-                    ${s.paid ? 'Paid' : 'Not Paid'}
-                </span>
-            </td>
-            <td class="px-4 py-2">
-                <button onclick="deleteSale(${i})" class="text-red-600 hover:underline material-icons align-middle" title="Delete">delete</button>
-            </td>
-        </tr>`;
+                </td>
+                <td class="px-4 py-2">
+                    <button onclick="deleteSale(${i})" class="text-red-600 hover:underline material-icons align-middle" title="Delete">delete</button>
+                </td>
+            </tr>`;
+            
+            // Sub-rows for each service
+            s.services.forEach((service, serviceIndex) => {
+                groupedHtml += `<tr class="text-xs sm:text-sm bg-gray-50">
+                    <td class="px-4 py-2"></td>
+                    <td class="px-4 py-2 pl-6 text-gray-600">• ${service.category}</td>
+                    <td class="px-4 py-2 pl-6 text-gray-600">${service.service}</td>
+                    <td class="px-4 py-2 pl-6 text-gray-600">${service.quantity}</td>
+                    <td class="px-4 py-2 pl-6 text-gray-600">PHP ${parseFloat(service.unitPrice).toFixed(2)}</td>
+                    <td class="px-4 py-2 pl-6 text-gray-600">PHP ${parseFloat(service.total).toFixed(2)}</td>
+                    <td class="px-4 py-2"></td>
+                    <td class="px-4 py-2"></td>
+                </tr>`;
+            });
+            
+            // Additional expense row if exists
+            if (s.additionalExpense > 0) {
+                groupedHtml += `<tr class="text-xs sm:text-sm bg-yellow-50">
+                    <td class="px-4 py-2"></td>
+                    <td class="px-4 py-2 pl-6 text-gray-600">• Additional</td>
+                    <td class="px-4 py-2 pl-6 text-gray-600">Additional Expense</td>
+                    <td class="px-4 py-2 pl-6 text-gray-600">1</td>
+                    <td class="px-4 py-2 pl-6 text-gray-600">PHP ${parseFloat(s.additionalExpense).toFixed(2)}</td>
+                    <td class="px-4 py-2 pl-6 text-gray-600">PHP ${parseFloat(s.additionalExpense).toFixed(2)}</td>
+                    <td class="px-4 py-2"></td>
+                    <td class="px-4 py-2"></td>
+                </tr>`;
+            }
+            
+            salesTable.innerHTML += groupedHtml;
+        } else {
+            // Render regular single sales
+            salesTable.innerHTML += `<tr class="text-xs sm:text-sm">
+                <td class="px-4 py-2">${s.date}</td>
+                <td class="px-4 py-2">${s.customer}</td>
+                <td class="px-4 py-2">${s.service}</td>
+                <td class="px-4 py-2">${s.quantity}</td>
+                <td class="px-4 py-2">PHP ${parseFloat(s.unitPrice).toFixed(2)}</td>
+                <td class="px-4 py-2">PHP ${parseFloat(s.total).toFixed(2)}</td>
+                <td class="px-4 py-2">
+                    <label class="sales-toggle">
+                        <input type="checkbox" onchange="toggleSalePaid(${i})" ${s.paid ? 'checked' : ''}>
+                        <span class="sales-slider">
+                            <span class="checkmark material-icons">check</span>
+                            <span class="xmark material-icons">close</span>
+                        </span>
+                    </label>
+                    <span class="ml-2 text-sm font-medium ${s.paid ? 'text-green-700' : 'text-gray-500'}">
+                        ${s.paid ? 'Paid' : 'Not Paid'}
+                    </span>
+                </td>
+                <td class="px-4 py-2">
+                    <button onclick="deleteSale(${i})" class="text-red-600 hover:underline material-icons align-middle" title="Delete">delete</button>
+                </td>
+            </tr>`;
+        }
     });
 }
 window.deleteSale = async function(i) {
-    if (confirm('Delete this sale?')) {
-        const s = sales[i];
+    const s = sales[i];
+    showModernConfirm('error', 'Delete Sale', `Are you sure you want to delete this sale for ${s.customer}?`, 'delete', async function() {
         await window.db.collection("sales").doc(s.id).delete();
         await loadSales();
         renderDashboard();
         updateDeductionBalance();
-    }
+        showModernAlert('success', 'Sale Deleted', 'Sale has been removed successfully.', 'delete');
+    });
 };
 window.toggleSalePaid = async function(i) {
     const s = sales[i];
@@ -449,12 +606,13 @@ window.toggleSalePaid = async function(i) {
     await loadSales();
 };
 
-// --- Sales Log Submit Button ---
+// --- Sales Log Submit Button (Add to Pending) ---
 submitSalesForCustomerBtn.onclick = async function() {
     if (!saleDate.value || !saleCustomer.value || !saleCategory.value || !saleService.value || !saleQuantity.value || !saleUnitPrice.value) {
-        alert('Please fill in all fields.');
+        showModernAlert('warning', 'Missing Information', 'Please fill in all fields.', 'warning');
         return;
     }
+    
     const sale = {
         date: saleDate.value,
         customer: saleCustomer.value.trim(),
@@ -463,17 +621,126 @@ submitSalesForCustomerBtn.onclick = async function() {
         quantity: parseInt(saleQuantity.value),
         unitPrice: parseFloat(saleUnitPrice.value),
         total: parseInt(saleQuantity.value) * parseFloat(saleUnitPrice.value),
-        paid: false // Default to not paid
+        id: Date.now() // Unique ID for pending sales
     };
-    await window.db.collection("sales").add(sale);
-    await loadSales();
-    saleDate.value = new Date().toISOString().split('T')[0];
-    saleCustomer.value = '';
+    
+    pendingSales.push(sale);
+    // show pending section
+    if (pendingSection) pendingSection.classList.remove('hidden');
+    if (pendingActions) pendingActions.classList.remove('hidden');
+    updatePendingSalesTable();
+    
+    // Clear form
     saleCategory.value = '';
     updateSaleServiceDropdown('', saleService);
     saleQuantity.value = 1;
     saleUnitPrice.value = '';
 };
+
+// --- Pending Sales Table Functions ---
+function updatePendingSalesTable() {
+    const tbody = document.getElementById('pendingSalesTable');
+    const subtotalEl = document.getElementById('pendingSalesSubtotal');
+    const additionalEl = document.getElementById('pendingSalesAdditional');
+    const totalEl = document.getElementById('pendingSalesTotal');
+    const additionalExpense = parseFloat(document.getElementById('additionalExpense').value) || 0;
+    
+    tbody.innerHTML = '';
+    
+    let subtotal = 0;
+    pendingSales.forEach(sale => {
+        subtotal += sale.total;
+        const row = tbody.insertRow();
+        row.innerHTML = `
+            <td class="px-4 py-2">${sale.category}</td>
+            <td class="px-4 py-2">${sale.service}</td>
+            <td class="px-4 py-2">${sale.quantity}</td>
+            <td class="px-4 py-2">PHP ${sale.unitPrice.toFixed(2)}</td>
+            <td class="px-4 py-2">PHP ${sale.total.toFixed(2)}</td>
+            <td class="px-4 py-2">
+                <button onclick="removePendingSale(${sale.id})" class="text-red-600 hover:text-red-800 text-sm">Remove</button>
+            </td>
+        `;
+    });
+    
+    subtotalEl.textContent = `PHP ${subtotal.toFixed(2)}`;
+    additionalEl.textContent = `PHP ${additionalExpense.toFixed(2)}`;
+    totalEl.textContent = `PHP ${(subtotal + additionalExpense).toFixed(2)}`;
+
+    // hide if empty
+    if (pendingSales.length === 0) {
+        if (pendingSection) pendingSection.classList.add('hidden');
+        if (pendingActions) pendingActions.classList.add('hidden');
+    }
+}
+
+function removePendingSale(id) {
+    pendingSales = pendingSales.filter(sale => sale.id !== id);
+    updatePendingSalesTable();
+}
+
+// --- Complete Sale (Done Button) ---
+document.getElementById('completeSale').onclick = async function() {
+    if (pendingSales.length === 0) {
+        showModernAlert('warning', 'No Items', 'No items to complete.', 'warning');
+        return;
+    }
+    
+    const additionalExpense = parseFloat(document.getElementById('additionalExpense').value) || 0;
+    const subtotal = pendingSales.reduce((sum, sale) => sum + sale.total, 0);
+    const total = subtotal + additionalExpense;
+    
+    // Create a single grouped sale entry
+    const groupedSale = {
+        date: pendingSales[0].date,
+        customer: pendingSales[0].customer,
+        services: pendingSales.map(sale => ({
+            category: sale.category,
+            service: sale.service,
+            quantity: sale.quantity,
+            unitPrice: sale.unitPrice,
+            total: sale.total
+        })),
+        additionalExpense: additionalExpense,
+        subtotal: subtotal,
+        total: total,
+        paid: false,
+        isGrouped: true // Flag to identify grouped sales
+    };
+    
+    await window.db.collection("sales").add(groupedSale);
+    
+    // Clear pending sales and reload
+    pendingSales = [];
+    document.getElementById('additionalExpense').value = '';
+    updatePendingSalesTable();
+    if (pendingSection) pendingSection.classList.add('hidden');
+    if (pendingActions) pendingActions.classList.add('hidden');
+    await loadSales();
+    
+    showModernAlert('success', 'Sale Completed!', 'Your sale has been successfully recorded.', 'check_circle');
+};
+
+// --- Cancel Sale ---
+document.getElementById('cancelSale').onclick = function() {
+    if (pendingSales.length === 0) {
+        showModernAlert('info', 'No Pending Sales', 'No pending sales to cancel.', 'info');
+        return;
+    }
+    
+    if (confirm('Are you sure you want to cancel this sale? All pending items will be removed.')) {
+        pendingSales = [];
+        document.getElementById('additionalExpense').value = '';
+        updatePendingSalesTable();
+        if (pendingSection) pendingSection.classList.add('hidden');
+        if (pendingActions) pendingActions.classList.add('hidden');
+    }
+};
+
+// --- Additional Expense Input Handler ---
+document.getElementById('additionalExpense').addEventListener('input', function() {
+    updatePendingSalesTable();
+});
 
 // --- Deductions ---
 function getIncomeBalance() {
@@ -490,7 +757,7 @@ deductionForm.onsubmit = async function(e) {
     const amount = parseFloat(deductionAmount.value);
     const balance = getIncomeBalance();
     if (amount > balance) {
-        alert('Insufficient income balance! You cannot deduct more than your current income.');
+        showModernAlert('error', 'Insufficient Balance', 'You cannot deduct more than your current income.', 'error');
         return;
     }
     const deduction = {
@@ -501,6 +768,7 @@ deductionForm.onsubmit = async function(e) {
     await window.db.collection("deductions").add(deduction);
     await loadDeductions();
     deductionForm.reset();
+    showModernAlert('success', 'Deduction Added!', 'New deduction has been recorded successfully.', 'remove_circle');
 };
 function renderDeductions() {
     deductionsTable.innerHTML = '';
@@ -653,5 +921,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Small delay to ensure Firebase is initialized
     setTimeout(init, 100);
+    
+    // Theme toggle removed: enforce single polished light theme
 });
 

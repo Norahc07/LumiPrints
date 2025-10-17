@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Firebase Test</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <h1>Firebase Connection Test</h1>
+    <div id="status">Testing...</div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDUI4fIc2bY_50CgU_d6z7GmM2iiTQ0sTA",
+            authDomain: "lumiprints-app.firebaseapp.com",
+            projectId: "lumiprints-app",
+            storageBucket: "lumiprints-app.appspot.com",
+            messagingSenderId: "109365807470",
+            appId: "1:109365807470:web:86fd91ec627ce1b43e597f",
+            measurementId: "G-R6WZJJ11CV"
+        };
+
+        async function testFirebase() {
+            try {
+                // Initialize Firebase
+                firebase.initializeApp(firebaseConfig);
+                const db = firebase.firestore();
+                
+                document.getElementById('status').innerHTML = '✅ Firebase initialized successfully';
+                
+                // Test basic connection
+                await db.collection("test").limit(1).get();
+                document.getElementById('status').innerHTML += '<br>✅ Firebase connection successful';
+                
+                // Test reading from services collection
+                try {
+                    const servicesSnapshot = await db.collection("services").limit(1).get();
+                    document.getElementById('status').innerHTML += '<br>✅ Services collection accessible';
+                } catch (error) {
+                    document.getElementById('status').innerHTML += '<br>❌ Services collection error: ' + error.message;
+                }
+                
+                // Test reading from sales collection
+                try {
+                    const salesSnapshot = await db.collection("sales").limit(1).get();
+                    document.getElementById('status').innerHTML += '<br>✅ Sales collection accessible';
+                } catch (error) {
+                    document.getElementById('status').innerHTML += '<br>❌ Sales collection error: ' + error.message;
+                }
+                
+                // Test reading from deductions collection
+                try {
+                    const deductionsSnapshot = await db.collection("deductions").limit(1).get();
+                    document.getElementById('status').innerHTML += '<br>✅ Deductions collection accessible';
+                } catch (error) {
+                    document.getElementById('status').innerHTML += '<br>❌ Deductions collection error: ' + error.message;
+                }
+                
+                // Test writing to test collection
+                try {
+                    await db.collection("test").add({
+                        timestamp: new Date(),
+                        message: "Test write"
+                    });
+                    document.getElementById('status').innerHTML += '<br>✅ Write permission successful';
+                } catch (error) {
+                    document.getElementById('status').innerHTML += '<br>❌ Write permission error: ' + error.message;
+                }
+                
+            } catch (error) {
+                document.getElementById('status').innerHTML = '❌ Firebase test error: ' + error.message;
+                console.error('Firebase test error:', error);
+            }
+        }
+
+        testFirebase();
+    </script>
+</body>
+</html>
