@@ -58,20 +58,24 @@ function showModernAlert(type, title, message, icon) {
     alertTitle.textContent = title;
     alertMessage.textContent = message;
     
-    // Show modal
-    modal.classList.remove('hidden');
+    // Show modal with optimized performance
+    requestAnimationFrame(() => {
+        modal.classList.remove('hidden');
+    });
     
-    // Auto-hide after 3 seconds for success messages
+    // Auto-hide after 2.5 seconds for success messages (faster)
     if (type === 'success') {
         setTimeout(() => {
             hideModernAlert();
-        }, 3000);
+        }, 2500);
     }
 }
 
 function hideModernAlert() {
     const modal = document.getElementById('modernAlertModal');
-    modal.classList.add('hidden');
+    requestAnimationFrame(() => {
+        modal.classList.add('hidden');
+    });
 }
 
 // Alert button event listener
@@ -96,13 +100,17 @@ function showModernConfirm(type, title, message, icon, callback) {
     // Store callback
     confirmCallback = callback;
     
-    // Show modal
-    modal.classList.remove('hidden');
+    // Show modal with optimized performance
+    requestAnimationFrame(() => {
+        modal.classList.remove('hidden');
+    });
 }
 
 function hideModernConfirm() {
     const modal = document.getElementById('modernConfirmModal');
-    modal.classList.add('hidden');
+    requestAnimationFrame(() => {
+        modal.classList.add('hidden');
+    });
     confirmCallback = null;
 }
 
@@ -504,7 +512,11 @@ function renderSales() {
     console.log('renderSales called', sales);
     salesTable.innerHTML = '';
     sales.forEach((s, i) => {
-        if (s.isGrouped && s.services) {
+        // Check if we should show grouped view: multiple services OR has additional expense
+        const shouldShowGrouped = (s.isGrouped && s.services && s.services.length > 1) || 
+                                 (s.isGrouped && s.services && s.services.length === 1 && s.additionalExpense > 0);
+        
+        if (shouldShowGrouped) {
             // Render grouped sales with sub-rows
             let groupedHtml = '';
             
@@ -563,24 +575,39 @@ function renderSales() {
             
             salesTable.innerHTML += groupedHtml;
         } else {
-            // Render regular single sales
+            // Render regular single sales (either old format or single service from grouped)
+            let serviceData = s;
+            
+            // If it's a grouped sale with single service, extract the service data
+            if (s.isGrouped && s.services && s.services.length === 1) {
+                serviceData = {
+                    date: s.date,
+                    customer: s.customer,
+                    service: s.services[0].service,
+                    quantity: s.services[0].quantity,
+                    unitPrice: s.services[0].unitPrice,
+                    total: s.services[0].total,
+                    paid: s.paid
+                };
+            }
+            
             salesTable.innerHTML += `<tr class="text-xs sm:text-sm">
-                <td class="px-4 py-2">${s.date}</td>
-                <td class="px-4 py-2">${s.customer}</td>
-                <td class="px-4 py-2">${s.service}</td>
-                <td class="px-4 py-2">${s.quantity}</td>
-                <td class="px-4 py-2">PHP ${parseFloat(s.unitPrice).toFixed(2)}</td>
-                <td class="px-4 py-2">PHP ${parseFloat(s.total).toFixed(2)}</td>
+                <td class="px-4 py-2">${serviceData.date}</td>
+                <td class="px-4 py-2">${serviceData.customer}</td>
+                <td class="px-4 py-2">${serviceData.service}</td>
+                <td class="px-4 py-2">${serviceData.quantity}</td>
+                <td class="px-4 py-2">PHP ${parseFloat(serviceData.unitPrice).toFixed(2)}</td>
+                <td class="px-4 py-2">PHP ${parseFloat(serviceData.total).toFixed(2)}</td>
                 <td class="px-4 py-2">
                     <label class="sales-toggle">
-                        <input type="checkbox" onchange="toggleSalePaid(${i})" ${s.paid ? 'checked' : ''}>
+                        <input type="checkbox" onchange="toggleSalePaid(${i})" ${serviceData.paid ? 'checked' : ''}>
                         <span class="sales-slider">
                             <span class="checkmark material-icons">check</span>
                             <span class="xmark material-icons">close</span>
                         </span>
                     </label>
-                    <span class="ml-2 text-sm font-medium ${s.paid ? 'text-green-700' : 'text-gray-500'}">
-                        ${s.paid ? 'Paid' : 'Not Paid'}
+                    <span class="ml-2 text-sm font-medium ${serviceData.paid ? 'text-green-700' : 'text-gray-500'}">
+                        ${serviceData.paid ? 'Paid' : 'Not Paid'}
                     </span>
                 </td>
                 <td class="px-4 py-2">
@@ -605,6 +632,18 @@ window.toggleSalePaid = async function(i) {
     await window.db.collection("sales").doc(s.id).update({ paid: !s.paid });
     await loadSales();
 };
+
+// --- Reset Sales Form Function ---
+function resetSalesForm() {
+    saleDate.value = '';
+    saleCustomer.value = '';
+    saleCategory.value = '';
+    saleService.value = '';
+    saleQuantity.value = '1';
+    saleUnitPrice.value = '';
+    // Reset service dropdown
+    updateSaleServiceDropdown('', saleService);
+}
 
 // --- Sales Log Submit Button (Add to Pending) ---
 submitSalesForCustomerBtn.onclick = async function() {
@@ -631,10 +670,7 @@ submitSalesForCustomerBtn.onclick = async function() {
     updatePendingSalesTable();
     
     // Clear form
-    saleCategory.value = '';
-    updateSaleServiceDropdown('', saleService);
-    saleQuantity.value = 1;
-    saleUnitPrice.value = '';
+    resetSalesForm();
 };
 
 // --- Pending Sales Table Functions ---
@@ -716,6 +752,10 @@ document.getElementById('completeSale').onclick = async function() {
     updatePendingSalesTable();
     if (pendingSection) pendingSection.classList.add('hidden');
     if (pendingActions) pendingActions.classList.add('hidden');
+    
+    // Reset the sales form completely
+    resetSalesForm();
+    
     await loadSales();
     
     showModernAlert('success', 'Sale Completed!', 'Your sale has been successfully recorded.', 'check_circle');
@@ -728,13 +768,18 @@ document.getElementById('cancelSale').onclick = function() {
         return;
     }
     
-    if (confirm('Are you sure you want to cancel this sale? All pending items will be removed.')) {
+    showModernConfirm('warning', 'Cancel Sale', 'Are you sure you want to cancel this sale? All pending items will be removed.', 'warning', function() {
         pendingSales = [];
         document.getElementById('additionalExpense').value = '';
         updatePendingSalesTable();
         if (pendingSection) pendingSection.classList.add('hidden');
         if (pendingActions) pendingActions.classList.add('hidden');
-    }
+        
+        // Reset the sales form
+        resetSalesForm();
+        
+        showModernAlert('success', 'Sale Cancelled', 'Pending sale has been cancelled successfully.', 'check_circle');
+    });
 };
 
 // --- Additional Expense Input Handler ---
@@ -919,8 +964,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Small delay to ensure Firebase is initialized
-    setTimeout(init, 100);
+    // Initialize immediately for faster startup
+    init();
     
     // Theme toggle removed: enforce single polished light theme
 });

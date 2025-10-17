@@ -874,13 +874,14 @@ td { line-height: 1.3; }
   width: 90%;
   margin: 20px;
   overflow: hidden;
-  animation: alertSlideIn 0.3s ease-out;
+  animation: alertSlideIn 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
 }
 
 @keyframes alertSlideIn {
   from {
     opacity: 0;
-    transform: translateY(-20px) scale(0.95);
+    transform: translateY(-10px) scale(0.98);
   }
   to {
     opacity: 1;
@@ -951,8 +952,9 @@ td { line-height: 1.3; }
   font-size: 14px;
   border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
   min-width: 80px;
+  will-change: transform, background-color;
 }
 
 .modern-alert-btn-primary {
@@ -962,8 +964,8 @@ td { line-height: 1.3; }
 
 .modern-alert-btn-primary:hover {
   background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transform: translateY(-0.5px);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
 }
 
 .modern-alert-btn-secondary {
@@ -973,7 +975,7 @@ td { line-height: 1.3; }
 
 .modern-alert-btn-secondary:hover {
   background: #e5e7eb;
-  transform: translateY(-1px);
+  transform: translateY(-0.5px);
 }
 
 .modern-alert-btn-danger {
@@ -983,6 +985,41 @@ td { line-height: 1.3; }
 
 .modern-alert-btn-danger:hover {
   background: linear-gradient(135deg, #dc2626, #b91c1c);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  transform: translateY(-0.5px);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
+}
+
+/* Optimized Modal Backdrop */
+#modernAlertModal, #modernConfirmModal {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transition: opacity 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity;
+}
+
+/* Fast modal show/hide transitions */
+.modern-modal-fast {
+  animation: modalFastIn 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes modalFastIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Optimized form transitions */
+input, select, textarea, button {
+  transition: border-color 0.1s cubic-bezier(0.4, 0, 0.2, 1), 
+              box-shadow 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Fast table row animations */
+tr {
+  transition: background-color 0.1s cubic-bezier(0.4, 0, 0.2, 1);
 }
