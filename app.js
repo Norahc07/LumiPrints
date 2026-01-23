@@ -246,6 +246,21 @@ function renderDashboard() {
 }
 dashboardFilter.addEventListener('change', renderDashboard);
 
+//Unpaid Sales Balance Update
+function updateTotalNotPaid(salesArray) {
+    // Filter sales that are NOT paid and sum their totals
+    // Assuming your sale object has a property 'isPaid' (boolean)
+    const totalUnpaid = salesArray
+        .filter(sale => !sale.isPaid) 
+        .reduce((sum, sale) => sum + parseFloat(sale.total || 0), 0);
+
+    // Update the UI
+    const totalNotPaidElement = document.getElementById('totalNotPaid');
+    if (totalNotPaidElement) {
+        totalNotPaidElement.innerText = `PHP ${totalUnpaid.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    }
+}
+
 // --- Services CRUD ---
 function renderServices() {
     console.log('renderServices called', services);
