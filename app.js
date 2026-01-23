@@ -559,6 +559,18 @@ window.removePendingSale = function(i) {
 // --- Sales Table ---
 function renderSales() {
     console.log('renderSales called', sales);
+
+    // --- ADD THIS CALCULATION BLOCK ---
+    const unpaidSales = sales.filter(s => !s.paid); // Get only sales where paid is false
+    const totalUnpaid = unpaidSales.reduce((sum, s) => sum + (parseFloat(s.total) || 0), 0);
+    
+    // Update the simple white display
+    const display = document.getElementById('unpaidTotalDisplay');
+    const count = document.getElementById('unpaidCount');
+    if (display) display.innerText = `PHP ${totalUnpaid.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+    if (count) count.innerText = `${unpaidSales.length} Sales Pending`;
+    // ----------------------------------
+
     salesTable.innerHTML = '';
     sales.forEach((s, i) => {
         // Check if we should show grouped view: multiple services OR has additional expense
