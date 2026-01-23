@@ -261,6 +261,40 @@ function updateTotalNotPaid(salesArray) {
     }
 }
 
+//update unpoaid on load and after sales load
+/**
+ * Calculates and updates the Total Unpaid Balance display
+ * @param {Array} sales - The array of sale objects from your database
+ */
+function updateUnpaidSummary(sales) {
+    let unpaidTotal = 0;
+    let unpaidCount = 0;
+
+    sales.forEach(sale => {
+        // Logic: Only add to total if 'isPaid' is false or status is not 'Paid'
+        // Ensure you use the exact field name from your Firebase (e.g., sale.isPaid or sale.status)
+        if (sale.isPaid === false || sale.status !== 'Paid') {
+            unpaidTotal += parseFloat(sale.totalPrice || 0);
+            unpaidCount++;
+        }
+    });
+
+    // Update the UI
+    const displayElement = document.getElementById('totalUnpaidDisplay');
+    const countElement = document.getElementById('unpaidCount');
+
+    if (displayElement) {
+        displayElement.innerText = `PHP ${unpaidTotal.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        })}`;
+    }
+
+    if (countElement) {
+        countElement.innerText = `${unpaidCount} Pending Payments`;
+    }
+}
+
 // --- Services CRUD ---
 function renderServices() {
     console.log('renderServices called', services);
