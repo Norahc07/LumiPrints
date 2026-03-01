@@ -44,9 +44,17 @@ const salesTable = document.getElementById('salesTable');
 const bulkPaidToolbar = document.getElementById('bulkPaidToolbar');
 const bulkMarkAsPaidBtn = document.getElementById('bulkMarkAsPaidBtn');
 const bulkPaidSelectedCount = document.getElementById('bulkPaidSelectedCount');
+const salesPagination = document.getElementById('salesPagination');
+const salesPageInfo = document.getElementById('salesPageInfo');
+const salesPrevPage = document.getElementById('salesPrevPage');
+const salesNextPage = document.getElementById('salesNextPage');
 
 // Indices of sales selected for bulk "mark as paid" (unpaid only)
 let selectedSaleIndicesForBulkPaid = new Set();
+
+// Sales pagination
+const SALES_PER_PAGE = 15;
+let salesPage = 1;
 const resetDataBtn = document.getElementById('resetDataBtn');
 const servicePaperSize = document.getElementById('servicePaperSize');
 
@@ -333,6 +341,7 @@ async function loadServices() {
 async function loadSales() {
     try {
         selectedSaleIndicesForBulkPaid.clear();
+        salesPage = 1;
         const querySnapshot = await window.db.collection("sales").orderBy("date", "desc").get();
         sales = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         requestAnimationFrame(() => {
@@ -523,9 +532,17 @@ function renderSales() {
     if (display) display.innerText = `PHP ${totalUnpaid.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
     if (count) count.innerText = `${unpaidSales.length} Sales Pending`;
 
+    const totalSales = sales.length;
+    const totalPages = Math.max(1, Math.ceil(totalSales / SALES_PER_PAGE));
+    if (salesPage > totalPages) salesPage = totalPages;
+    const startIdx = (salesPage - 1) * SALES_PER_PAGE;
+    const endIdx = Math.min(startIdx + SALES_PER_PAGE, totalSales);
+    const pageSales = sales.slice(startIdx, endIdx);
+
     let html = '';
-    for (let i = 0; i < sales.length; i++) {
-        const s = sales[i];
+    for (let k = 0; k < pageSales.length; k++) {
+        const i = startIdx + k;
+        const s = pageSales[k];
         const shouldShowGrouped = (s.isGrouped && s.services && s.services.length > 1) ||
                                  (s.isGrouped && s.services && s.services.length === 1 && s.additionalExpense > 0);
 
@@ -620,6 +637,15 @@ function renderSales() {
     }
     salesTable.innerHTML = html;
     updateBulkPaidButton();
+
+    if (salesPagination) {
+        salesPagination.classList.toggle('hidden', totalSales <= SALES_PER_PAGE);
+        if (totalSales > SALES_PER_PAGE) {
+            if (salesPageInfo) salesPageInfo.textContent = `Showing ${startIdx + 1}–${endIdx} of ${totalSales}`;
+            if (salesPrevPage) salesPrevPage.disabled = salesPage <= 1;
+            if (salesNextPage) salesNextPage.disabled = salesPage >= totalPages;
+        }
+    }
 }
 
 function updateBulkPaidButton() {
@@ -836,6 +862,24 @@ if (bulkMarkAsPaidBtn) {
     bulkMarkAsPaidBtn.onclick = function() {
         if (selectedSaleIndicesForBulkPaid.size === 0) return;
         window.bulkMarkAsPaid();
+    };
+}
+
+if (salesPrevPage) {
+    salesPrevPage.onclick = function() {
+        if (salesPage > 1) {
+            salesPage--;
+            renderSales();
+        }
+    };
+}
+if (salesNextPage) {
+    salesNextPage.onclick = function() {
+        const totalPages = Math.ceil(sales.length / SALES_PER_PAGE);
+        if (salesPage < totalPages) {
+            salesPage++;
+            renderSales();
+        }
     };
 }
 
