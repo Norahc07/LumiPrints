@@ -548,8 +548,8 @@ input[type="checkbox"].peer + div {
     touch-action: manipulation;
   }
   
-  /* Improved mobile input styling */
-  input, select, textarea {
+  /* Improved mobile input styling (exclude checkboxes so they stay visible) */
+  input:not([type="checkbox"]), select, textarea {
     min-height: 44px;
     font-size: 16px; /* Prevents zoom on iOS */
     -webkit-appearance: none;
@@ -765,6 +765,70 @@ table, thead, tbody, th, td, tr {
   border: none;
   background: unset;
   color: unset;
+}
+
+/* Sales log: sticky Select column + larger checkboxes on mobile */
+.sales-log-table th:first-child,
+.sales-log-table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  min-width: 48px;
+  background: #fff;
+  box-shadow: 2px 0 4px rgba(0,0,0,0.06);
+}
+.sales-log-table thead th:first-child {
+  background: linear-gradient(180deg, #f8fafc, #f1f5f9);
+  z-index: 11;
+}
+.sales-log-table tbody tr.bg-blue-50 td:first-child { background: #eff6ff; }
+.sales-log-table tbody tr.bg-gray-50 td:first-child { background: #f9fafb; }
+.sales-log-table tbody tr.bg-yellow-50 td:first-child { background: #fefce8; }
+.sales-log-table tbody tr:not([class*="bg-"]) td:first-child { background: #fff; }
+
+/* Bulk select checkboxes: same style for single & grouped rows */
+.sales-log-table .bulk-select-checkbox {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  width: 22px !important;
+  height: 22px !important;
+  min-width: 22px !important;
+  min-height: 22px !important;
+  border: 2px solid #94a3b8 !important;
+  border-radius: 4px !important;
+  background: #fff !important;
+  cursor: pointer;
+  vertical-align: middle;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+.sales-log-table .bulk-select-checkbox:checked {
+  background: #22c55e !important;
+  border-color: #22c55e !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E") !important;
+  background-size: 14px 14px !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+.sales-log-table .bulk-select-checkbox:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 1px;
+}
+
+@media (max-width: 768px) {
+  .sales-log-table th:first-child,
+  .sales-log-table td:first-child {
+    min-width: 56px;
+  }
+  .sales-log-table .bulk-select-checkbox {
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    min-height: 24px !important;
+  }
+  .sales-log-table .bulk-select-checkbox:checked {
+    background-size: 16px 16px !important;
+  }
 } 
 
 /* ==== Modern Theme & Enhancements (appended) ==== */

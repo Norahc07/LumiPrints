@@ -41,6 +41,12 @@ const deductionAmount = document.getElementById('deductionAmount');
 const deductionsTable = document.getElementById('deductionsTable');
 const deductionIncomeBalance = document.getElementById('deductionIncomeBalance');
 const salesTable = document.getElementById('salesTable');
+const bulkPaidToolbar = document.getElementById('bulkPaidToolbar');
+const bulkMarkAsPaidBtn = document.getElementById('bulkMarkAsPaidBtn');
+const bulkPaidSelectedCount = document.getElementById('bulkPaidSelectedCount');
+
+// Indices of sales selected for bulk "mark as paid" (unpaid only)
+let selectedSaleIndicesForBulkPaid = new Set();
 const resetDataBtn = document.getElementById('resetDataBtn');
 const servicePaperSize = document.getElementById('servicePaperSize');
 
@@ -191,7 +197,6 @@ function loadAll() {
 
 // --- Dashboard ---
 function renderDashboard() {
-    console.log('renderDashboard called', {services, sales, deductions});
     const filter = dashboardFilter.value;
     const now = new Date();
     let start, end;
@@ -211,7 +216,6 @@ function renderDashboard() {
         start = new Date(0);
         end = new Date(3000, 0, 1);
     }
-    // Only count paid sales
     const filteredSales = sales.filter(s => {
         const d = new Date(s.date);
         return d >= start && d <= end && s.paid;
@@ -226,23 +230,19 @@ function renderDashboard() {
     dashboardCustomers.textContent = customers.size;
     dashboardServices.textContent = services.length;
     dashboardDeductions.textContent = 'PHP ' + filteredDeductions.reduce((sum, d) => sum + d.amount, 0).toFixed(2);
-    dashboardPrintingTable.innerHTML = '';
-    dashboardLayoutTable.innerHTML = '';
-    services.filter(s => s.category === 'Printing').forEach(s => {
-        dashboardPrintingTable.innerHTML += `<tr class="text-xs sm:text-sm">
-            <td class="px-4 py-2">${s.name}</td>
-            <td class="px-4 py-2">${s.unit}</td>
-            <td class="px-4 py-2">PHP ${parseFloat(s.price).toFixed(2)}</td>
-            <td class="px-4 py-2">${s.paperSize || ''}</td>
-        </tr>`;
-    });
-    services.filter(s => s.category === 'Layout').forEach(s => {
-        dashboardLayoutTable.innerHTML += `<tr class="text-xs sm:text-sm">
-            <td class="px-4 py-2">${s.name}</td>
-            <td class="px-4 py-2">${s.unit}</td>
-            <td class="px-4 py-2">PHP ${parseFloat(s.price).toFixed(2)}</td>
-        </tr>`;
-    });
+    let printingHtml = '', layoutHtml = '';
+    const printing = services.filter(s => s.category === 'Printing');
+    const layout = services.filter(s => s.category === 'Layout');
+    for (let i = 0; i < printing.length; i++) {
+        const s = printing[i];
+        printingHtml += `<tr class="text-xs sm:text-sm"><td class="px-4 py-2">${s.name}</td><td class="px-4 py-2">${s.unit}</td><td class="px-4 py-2">PHP ${parseFloat(s.price).toFixed(2)}</td><td class="px-4 py-2">${s.paperSize || ''}</td></tr>`;
+    }
+    for (let i = 0; i < layout.length; i++) {
+        const s = layout[i];
+        layoutHtml += `<tr class="text-xs sm:text-sm"><td class="px-4 py-2">${s.name}</td><td class="px-4 py-2">${s.unit}</td><td class="px-4 py-2">PHP ${parseFloat(s.price).toFixed(2)}</td></tr>`;
+    }
+    dashboardPrintingTable.innerHTML = printingHtml;
+    dashboardLayoutTable.innerHTML = layoutHtml;
 }
 dashboardFilter.addEventListener('change', renderDashboard);
 
@@ -297,70 +297,29 @@ function updateUnpaidSummary(sales) {
 
 // --- Services CRUD ---
 function renderServices() {
-    console.log('renderServices called', services);
-    printingServicesTable.innerHTML = '';
-    layoutServicesTable.innerHTML = '';
-    
-    // Sort services alphabetically by name
     const sortedServices = [...services].sort((a, b) => a.name.localeCompare(b.name));
-    
-    sortedServices.forEach((s, i) => {
-        // Find the original index in the services array for proper editing
+    let printingHtml = '', layoutHtml = '';
+    for (let i = 0; i < sortedServices.length; i++) {
+        const s = sortedServices[i];
         const originalIndex = services.findIndex(service => service.id === s.id);
-        
-        let row = '';
+        const actions = `<div class='service-actions'><button onclick="openEditServiceModal(${originalIndex})" class="text-blue-600 material-icons align-middle" title="Edit">edit</button><button onclick="deleteService(${originalIndex})" class="text-red-600 material-icons align-middle" title="Delete">delete</button></div>`;
         if (s.category === 'Printing') {
-            row = `
-                <tr class="text-xs sm:text-sm">
-                    <td class="px-4 py-2">${s.name}</td>
-                    <td class="px-4 py-2">${s.unit}</td>
-                    <td class="px-4 py-2">PHP ${parseFloat(s.price).toFixed(2)}</td>
-                    <td class="px-4 py-2">${s.paperSize || ''}</td>
-                    <td class="px-4 py-2">
-                        <div class='service-actions'>
-                            <button onclick="openEditServiceModal(${originalIndex})" class="text-blue-600 material-icons align-middle" title="Edit">edit</button>
-                            <button onclick="deleteService(${originalIndex})" class="text-red-600 material-icons align-middle" title="Delete">delete</button>
-                        </div>
-                    </td>
-                </tr>
-            `;
-            printingServicesTable.innerHTML += row;
+            printingHtml += `<tr class="text-xs sm:text-sm"><td class="px-4 py-2">${s.name}</td><td class="px-4 py-2">${s.unit}</td><td class="px-4 py-2">PHP ${parseFloat(s.price).toFixed(2)}</td><td class="px-4 py-2">${s.paperSize || ''}</td><td class="px-4 py-2">${actions}</td></tr>`;
         } else {
-            row = `
-                <tr class="text-xs sm:text-sm">
-                    <td class="px-4 py-2">${s.name}</td>
-                    <td class="px-4 py-2">${s.unit}</td>
-                    <td class="px-4 py-2">PHP ${parseFloat(s.price).toFixed(2)}</td>
-                    <td class="px-4 py-2">
-                        <div class='service-actions'>
-                            <button onclick="openEditServiceModal(${originalIndex})" class="text-blue-600 material-icons align-middle" title="Edit">edit</button>
-                            <button onclick="deleteService(${originalIndex})" class="text-red-600 material-icons align-middle" title="Delete">delete</button>
-                        </div>
-                    </td>
-                </tr>
-            `;
-            layoutServicesTable.innerHTML += row;
+            layoutHtml += `<tr class="text-xs sm:text-sm"><td class="px-4 py-2">${s.name}</td><td class="px-4 py-2">${s.unit}</td><td class="px-4 py-2">PHP ${parseFloat(s.price).toFixed(2)}</td><td class="px-4 py-2">${actions}</td></tr>`;
         }
-    });
+    }
+    printingServicesTable.innerHTML = printingHtml;
+    layoutServicesTable.innerHTML = layoutHtml;
     updateSaleServiceDropdown(saleCategory.value, saleService);
 }
 // --- Firestore Sync Functions ---
 async function loadServices() {
     try {
-        console.log('Loading services from Firestore...');
-        // Always fetch services sorted alphabetically by name
         const querySnapshot = await window.db.collection("services").orderBy("name").get();
-        console.log('Services query result:', querySnapshot.docs.length, 'documents');
         services = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        console.log('Services loaded:', services);
-        
-        // Force re-render
         renderServices();
         renderDashboard();
-        
-        // Log table contents for debugging
-        console.log('Printing services table HTML:', printingServicesTable.innerHTML);
-        console.log('Layout services table HTML:', layoutServicesTable.innerHTML);
     } catch (error) {
         console.error('Error loading services:', error);
         if (error.code === 'permission-denied') {
@@ -370,16 +329,16 @@ async function loadServices() {
         }
     }
 }
-``
+
 async function loadSales() {
     try {
-        console.log('Loading sales from Firestore...');
+        selectedSaleIndicesForBulkPaid.clear();
         const querySnapshot = await window.db.collection("sales").orderBy("date", "desc").get();
-        console.log('Sales query result:', querySnapshot.docs.length, 'documents');
         sales = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        console.log('Sales loaded:', sales);
-        renderSales();
-        renderDashboard();
+        requestAnimationFrame(() => {
+            renderSales();
+            renderDashboard();
+        });
     } catch (error) {
         console.error('Error loading sales:', error);
         if (error.code === 'permission-denied') {
@@ -392,14 +351,13 @@ async function loadSales() {
 
 async function loadDeductions() {
     try {
-        console.log('Loading deductions from Firestore...');
         const querySnapshot = await window.db.collection("deductions").orderBy("date", "desc").get();
-        console.log('Deductions query result:', querySnapshot.docs.length, 'documents');
         deductions = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        console.log('Deductions loaded:', deductions);
-        renderDeductions();
-        renderDashboard();
-        updateDeductionBalance();
+        requestAnimationFrame(() => {
+            renderDeductions();
+            renderDashboard();
+            updateDeductionBalance();
+        });
     } catch (error) {
         console.error('Error loading deductions:', error);
         if (error.code === 'permission-denied') {
@@ -558,31 +516,25 @@ window.removePendingSale = function(i) {
 
 // --- Sales Table ---
 function renderSales() {
-    console.log('renderSales called', sales);
-
-    // --- ADD THIS CALCULATION BLOCK ---
-    const unpaidSales = sales.filter(s => !s.paid); // Get only sales where paid is false
+    const unpaidSales = sales.filter(s => !s.paid);
     const totalUnpaid = unpaidSales.reduce((sum, s) => sum + (parseFloat(s.total) || 0), 0);
-    
-    // Update the simple white display
     const display = document.getElementById('unpaidTotalDisplay');
     const count = document.getElementById('unpaidCount');
     if (display) display.innerText = `PHP ${totalUnpaid.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
     if (count) count.innerText = `${unpaidSales.length} Sales Pending`;
-    // ----------------------------------
 
-    salesTable.innerHTML = '';
-    sales.forEach((s, i) => {
-        // Check if we should show grouped view: multiple services OR has additional expense
-        const shouldShowGrouped = (s.isGrouped && s.services && s.services.length > 1) || 
+    let html = '';
+    for (let i = 0; i < sales.length; i++) {
+        const s = sales[i];
+        const shouldShowGrouped = (s.isGrouped && s.services && s.services.length > 1) ||
                                  (s.isGrouped && s.services && s.services.length === 1 && s.additionalExpense > 0);
-        
+
         if (shouldShowGrouped) {
-            // Render grouped sales with sub-rows
-            let groupedHtml = '';
-            
-            // Main row with customer info and total
-            groupedHtml += `<tr class="text-xs sm:text-sm bg-blue-50 border-l-4 border-blue-400">
+            const bulkCheckboxGrouped = !s.paid
+                ? `<input type="checkbox" class="bulk-select-checkbox" onchange="toggleBulkSelectSale(${i})" ${selectedSaleIndicesForBulkPaid.has(i) ? 'checked' : ''} title="Select for bulk mark as paid">`
+                : '<span class="text-gray-300 text-xs">—</span>';
+            html += `<tr class="text-xs sm:text-sm bg-blue-50 border-l-4 border-blue-400">
+                <td class="px-2 py-2 text-center align-middle w-10">${bulkCheckboxGrouped}</td>
                 <td class="px-4 py-2 font-semibold">${s.date}</td>
                 <td class="px-4 py-2 font-semibold">${s.customer}</td>
                 <td class="px-4 py-2 font-semibold">${s.services.length} service(s)</td>
@@ -597,49 +549,37 @@ function renderSales() {
                             <span class="xmark material-icons">close</span>
                         </span>
                     </label>
-                    <span class="ml-2 text-sm font-medium ${s.paid ? 'text-green-700' : 'text-gray-500'}">
-                        ${s.paid ? 'Paid' : 'Not Paid'}
-                    </span>
+                    <span class="ml-2 text-sm font-medium ${s.paid ? 'text-green-700' : 'text-gray-500'}">${s.paid ? 'Paid' : 'Not Paid'}</span>
                 </td>
                 <td class="px-4 py-2">
                     <button onclick="deleteSale(${i})" class="text-red-600 hover:underline material-icons align-middle" title="Delete">delete</button>
                 </td>
             </tr>`;
-            
-            // Sub-rows for each service
-            s.services.forEach((service, serviceIndex) => {
-                groupedHtml += `<tr class="text-xs sm:text-sm bg-gray-50">
-                    <td class="px-4 py-2"></td>
+            for (let j = 0; j < s.services.length; j++) {
+                const service = s.services[j];
+                html += `<tr class="text-xs sm:text-sm bg-gray-50">
+                    <td class="px-2 py-2"></td><td class="px-4 py-2"></td>
                     <td class="px-4 py-2 pl-6 text-gray-600">• ${service.category}</td>
                     <td class="px-4 py-2 pl-6 text-gray-600">${service.service}</td>
                     <td class="px-4 py-2 pl-6 text-gray-600">${service.quantity}</td>
                     <td class="px-4 py-2 pl-6 text-gray-600">PHP ${parseFloat(service.unitPrice).toFixed(2)}</td>
                     <td class="px-4 py-2 pl-6 text-gray-600">PHP ${parseFloat(service.total).toFixed(2)}</td>
-                    <td class="px-4 py-2"></td>
-                    <td class="px-4 py-2"></td>
+                    <td class="px-4 py-2"></td><td class="px-4 py-2"></td>
                 </tr>`;
-            });
-            
-            // Additional expense row if exists
+            }
             if (s.additionalExpense > 0) {
-                groupedHtml += `<tr class="text-xs sm:text-sm bg-yellow-50">
-                    <td class="px-4 py-2"></td>
+                html += `<tr class="text-xs sm:text-sm bg-yellow-50">
+                    <td class="px-2 py-2"></td><td class="px-4 py-2"></td>
                     <td class="px-4 py-2 pl-6 text-gray-600">• Additional</td>
                     <td class="px-4 py-2 pl-6 text-gray-600">Additional Expense</td>
                     <td class="px-4 py-2 pl-6 text-gray-600">1</td>
                     <td class="px-4 py-2 pl-6 text-gray-600">PHP ${parseFloat(s.additionalExpense).toFixed(2)}</td>
                     <td class="px-4 py-2 pl-6 text-gray-600">PHP ${parseFloat(s.additionalExpense).toFixed(2)}</td>
-                    <td class="px-4 py-2"></td>
-                    <td class="px-4 py-2"></td>
+                    <td class="px-4 py-2"></td><td class="px-4 py-2"></td>
                 </tr>`;
             }
-            
-            salesTable.innerHTML += groupedHtml;
         } else {
-            // Render regular single sales (either old format or single service from grouped)
             let serviceData = s;
-            
-            // If it's a grouped sale with single service, extract the service data
             if (s.isGrouped && s.services && s.services.length === 1) {
                 serviceData = {
                     date: s.date,
@@ -651,8 +591,11 @@ function renderSales() {
                     paid: s.paid
                 };
             }
-            
-            salesTable.innerHTML += `<tr class="text-xs sm:text-sm">
+            const bulkCheckboxSingle = !serviceData.paid
+                ? `<input type="checkbox" class="bulk-select-checkbox" onchange="toggleBulkSelectSale(${i})" ${selectedSaleIndicesForBulkPaid.has(i) ? 'checked' : ''} title="Select for bulk mark as paid">`
+                : '<span class="text-gray-300 text-xs">—</span>';
+            html += `<tr class="text-xs sm:text-sm">
+                <td class="px-2 py-2 text-center align-middle w-10">${bulkCheckboxSingle}</td>
                 <td class="px-4 py-2">${serviceData.date}</td>
                 <td class="px-4 py-2">${serviceData.customer}</td>
                 <td class="px-4 py-2">${serviceData.service}</td>
@@ -667,31 +610,78 @@ function renderSales() {
                             <span class="xmark material-icons">close</span>
                         </span>
                     </label>
-                    <span class="ml-2 text-sm font-medium ${serviceData.paid ? 'text-green-700' : 'text-gray-500'}">
-                        ${serviceData.paid ? 'Paid' : 'Not Paid'}
-                    </span>
+                    <span class="ml-2 text-sm font-medium ${serviceData.paid ? 'text-green-700' : 'text-gray-500'}">${serviceData.paid ? 'Paid' : 'Not Paid'}</span>
                 </td>
                 <td class="px-4 py-2">
                     <button onclick="deleteSale(${i})" class="text-red-600 hover:underline material-icons align-middle" title="Delete">delete</button>
                 </td>
             </tr>`;
         }
-    });
+    }
+    salesTable.innerHTML = html;
+    updateBulkPaidButton();
+}
+
+function updateBulkPaidButton() {
+    const hasUnpaid = sales.some(s => !s.paid);
+    if (bulkPaidToolbar) {
+        bulkPaidToolbar.classList.toggle('hidden', !hasUnpaid);
+    }
+    const n = selectedSaleIndicesForBulkPaid.size;
+    if (bulkMarkAsPaidBtn) bulkMarkAsPaidBtn.disabled = n === 0;
+    if (bulkPaidSelectedCount) bulkPaidSelectedCount.textContent = n === 0 ? '0 selected' : `${n} selected`;
+}
+
+window.toggleBulkSelectSale = function(i) {
+    const s = sales[i];
+    if (!s || s.paid) return;
+    if (selectedSaleIndicesForBulkPaid.has(i)) {
+        selectedSaleIndicesForBulkPaid.delete(i);
+    } else {
+        selectedSaleIndicesForBulkPaid.add(i);
+    }
+    updateBulkPaidButton();
+}
+
+window.bulkMarkAsPaid = async function() {
+    const indices = Array.from(selectedSaleIndicesForBulkPaid).filter(i => sales[i] && !sales[i].paid);
+    if (indices.length === 0) return;
+    const docIds = indices.map(i => sales[i]?.id).filter(Boolean);
+    indices.forEach(i => { if (sales[i]) sales[i].paid = true; });
+    selectedSaleIndicesForBulkPaid.clear();
+    updateBulkPaidButton();
+    renderSales();
+    renderDashboard();
+    updateDeductionBalance();
+    try {
+        await Promise.all(docIds.map(id => window.db.collection("sales").doc(id).update({ paid: true })));
+    } finally {
+        loadSales();
+    }
 }
 window.deleteSale = async function(i) {
     const s = sales[i];
     showModernConfirm('error', 'Delete Sale', `Are you sure you want to delete this sale for ${s.customer}?`, 'delete', async function() {
-        await window.db.collection("sales").doc(s.id).delete();
-        await loadSales();
+        const id = s.id;
+        sales.splice(i, 1);
+        renderSales();
         renderDashboard();
         updateDeductionBalance();
-        showModernAlert('success', 'Sale Deleted', 'Sale has been removed successfully.', 'delete');
+        try {
+            await window.db.collection("sales").doc(id).delete();
+        } finally {
+            loadSales();
+        }
     });
 };
 window.toggleSalePaid = async function(i) {
     const s = sales[i];
-    await window.db.collection("sales").doc(s.id).update({ paid: !s.paid });
-    await loadSales();
+    if (!s || !s.id) return;
+    s.paid = !s.paid;
+    renderSales();
+    renderDashboard();
+    updateDeductionBalance();
+    window.db.collection("sales").doc(s.id).update({ paid: s.paid }).then(() => loadSales());
 };
 
 // --- Reset Sales Form Function ---
@@ -818,8 +808,6 @@ document.getElementById('completeSale').onclick = async function() {
     resetSalesForm();
     
     await loadSales();
-    
-    showModernAlert('success', 'Sale Completed!', 'Your sale has been successfully recorded.', 'check_circle');
 };
 
 // --- Cancel Sale ---
@@ -843,10 +831,22 @@ document.getElementById('cancelSale').onclick = function() {
     });
 };
 
+// --- Bulk mark selected sales as paid ---
+if (bulkMarkAsPaidBtn) {
+    bulkMarkAsPaidBtn.onclick = function() {
+        if (selectedSaleIndicesForBulkPaid.size === 0) return;
+        window.bulkMarkAsPaid();
+    };
+}
+
 // --- Additional Expense Input Handler ---
-document.getElementById('additionalExpense').addEventListener('input', function() {
-    updatePendingSalesTable();
-});
+(function() {
+    let additionalExpenseDebounce;
+    document.getElementById('additionalExpense').addEventListener('input', function() {
+        clearTimeout(additionalExpenseDebounce);
+        additionalExpenseDebounce = setTimeout(updatePendingSalesTable, 80);
+    });
+})();
 
 // --- Deductions ---
 function getIncomeBalance() {
@@ -877,14 +877,12 @@ deductionForm.onsubmit = async function(e) {
     showModernAlert('success', 'Deduction Added!', 'New deduction has been recorded successfully.', 'remove_circle');
 };
 function renderDeductions() {
-    deductionsTable.innerHTML = '';
-    deductions.forEach((d) => {
-        deductionsTable.innerHTML += `<tr>
-            <td class="px-4 py-2">${d.date}</td>
-            <td class="px-4 py-2">${d.desc}</td>
-            <td class="px-4 py-2">PHP ${parseFloat(d.amount).toFixed(2)}</td>
-        </tr>`;
-    });
+    let html = '';
+    for (let i = 0; i < deductions.length; i++) {
+        const d = deductions[i];
+        html += `<tr><td class="px-4 py-2">${d.date}</td><td class="px-4 py-2">${d.desc}</td><td class="px-4 py-2">PHP ${parseFloat(d.amount).toFixed(2)}</td></tr>`;
+    }
+    deductionsTable.innerHTML = html;
     updateDeductionBalance();
 }
 

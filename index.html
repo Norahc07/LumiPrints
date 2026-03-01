@@ -83,9 +83,9 @@
                     <label class="font-semibold text-gray-700">Filter:</label>
                     <select id="dashboardFilter" class="border rounded px-2 py-1 focus:ring-2 focus:ring-blue-400">
                         <option value="week">This Week</option>
-                        <option value="month" selected>This Month</option>
+                        <option value="month">This Month</option>
                         <option value="year">This Year</option>
-                        <option value="all">All Time</option>
+                        <option value="all" selected>All Time</option>
                     </select>
                 </div>
             </div>
@@ -262,12 +262,20 @@
                     <button type="button" id="completeSale" class="bg-green-600 text-white rounded px-6 py-2 hover:bg-green-700 transition whitespace-nowrap">Done</button>
                 </div>
             </div>
-            <!-- Submit button moved to form row -->
+            <!-- Bulk mark as paid toolbar (unpaid sales only) -->
+            <div id="bulkPaidToolbar" class="mb-3 flex items-center gap-3 hidden">
+                <button type="button" id="bulkMarkAsPaidBtn" disabled class="bg-green-600 text-white rounded px-4 py-2 hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex items-center gap-2">
+                    <span class="material-icons text-lg">check_circle</span>
+                    Mark selected as paid
+                </button>
+                <span id="bulkPaidSelectedCount" class="text-sm text-gray-500">0 selected</span>
+            </div>
             <div class="overflow-x-auto rounded-lg shadow w-full">
                 <div class="table-rows-15">
-                <table class="min-w-full text-xs sm:text-sm divide-y divide-gray-200 rounded-lg shadow-sm">
+                <table class="sales-log-table min-w-full text-xs sm:text-sm divide-y divide-gray-200 rounded-lg shadow-sm">
                     <thead class="bg-gray-50 sticky top-0 z-10">
                         <tr>
+                            <th class="px-2 py-2 w-10 text-center sales-log-select-col">Select</th>
                             <th class="px-4 py-2">Date</th>
                             <th class="px-4 py-2">Customer</th>
                             <th class="px-4 py-2">Service</th>
